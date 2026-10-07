@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+
+- Many more voices: uwus from Hannah OwO, Pokimane, Ironmouse, Gawr Gura, Kobo, Neuro-sama and more, plus tuturu, nyanpasu and nico nico nii. More ara aras, Chika's "hiiih!" and a few more angry sounds for big hits.
+- Every clip now starts right on the voice and ends without a pause, and carries no leftover metadata.
+- New **Sounds** page under the options: every clip as a button to play it. `/uwu sounds` opens it.
+
 ## 1.0.1
 
 - Fix: a crit on the opening hit of a fight (for example the first Arcane Missile) now plays an uwu. It was dropped because the client marks you as in combat only after that hit.

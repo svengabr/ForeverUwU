@@ -70,16 +70,19 @@ local function NextSound(kind)
 	return path;
 end
 
-local function Play(kind)
+local function PlayPath(kind, path)
 	if db.bubbles then
 		ns.ShowBubble(kind, db.bubbleX, db.bubbleY);
 	end
-	local path = NextSound(kind);
 	if path then
 		PlaySoundFile(path:format(db.volume), CHANNEL);
 		return true;
 	end
 	return false;
+end
+
+local function Play(kind)
+	return PlayPath(kind, NextSound(kind));
 end
 
 local function OnOwnCrit()
@@ -327,11 +330,76 @@ local function RegisterOptions()
 		"A single hit that takes at least this share of your maximum health counts as big.", 5, 100, 5, "%d %%");
 	Slider("hurtCooldown", "Seconds between angry uwus", "An angry uwu plays at most this often.", 0, 10, 0.5, "%.1f s");
 
-	Settings.RegisterAddOnCategory(category);
 	return category;
 end
 
-local category;
+-- A page under the options with one button per clip, to hear each of them.
+local BOARD_POOLS = {
+	{ kind = "crit", title = "UwU on crits" },
+	{ kind = "small", title = "Small uwus" },
+	{ kind = "hurt", title = "Angry uwus" },
+};
+local BOARD_COLUMNS = 3;
+local BOARD_BUTTON_WIDTH, BOARD_BUTTON_HEIGHT = 190, 22;
+
+-- "sounds\%d\crit\cute-uwu-73482.ogg" -> "cute uwu"
+local function ClipName(path)
+	local name = path:match("([^\\]+)%.ogg$") or path;
+	return (name:gsub("%-%d+$", ""):gsub("%-", " "));
+end
+
+local function RegisterSoundBoard(parent)
+	local panel = CreateFrame("Frame");
+
+	local title = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightHuge");
+	title:SetPoint("TOPLEFT", 7, -22);
+	title:SetText("Sounds");
+
+	local scroll = CreateFrame("ScrollFrame", nil, panel, "UIPanelScrollFrameTemplate");
+	scroll:SetPoint("TOPLEFT", 0, -56);
+	scroll:SetPoint("BOTTOMRIGHT", -28, 8);
+	local content = CreateFrame("Frame", nil, scroll);
+	content:SetSize(BOARD_COLUMNS * (BOARD_BUTTON_WIDTH + 6), 1);
+	scroll:SetScrollChild(content);
+
+	local y = 0;
+	for _, pool in ipairs(BOARD_POOLS) do
+		local clips = {};
+		for _, list in ipairs(ns.soundLists or {}) do
+			for _, path in ipairs(list[pool.kind] or {}) do
+				clips[#clips + 1] = { path = path, set = list.set };
+			end
+		end
+		if #clips > 0 then
+			local header = content:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge");
+			header:SetPoint("TOPLEFT", 10, -y);
+			header:SetText(("%s (%d)"):format(pool.title, #clips));
+			y = y + 26;
+			for i, clip in ipairs(clips) do
+				local column = (i - 1) % BOARD_COLUMNS;
+				local row = math.floor((i - 1) / BOARD_COLUMNS);
+				local button = CreateFrame("Button", nil, content, "UIPanelButtonTemplate");
+				button:SetSize(BOARD_BUTTON_WIDTH, BOARD_BUTTON_HEIGHT);
+				button:SetPoint("TOPLEFT", 10 + column * (BOARD_BUTTON_WIDTH + 6), -(y + row * (BOARD_BUTTON_HEIGHT + 4)));
+				local label = ClipName(clip.path);
+				if clip.set ~= "public" then
+					label = label .. " (" .. clip.set .. ")";
+				end
+				button:SetText(label);
+				local kind, path = pool.kind, clip.path;
+				button:SetScript("OnClick", function()
+					PlayPath(kind, path);
+				end);
+			end
+			y = y + math.ceil(#clips / BOARD_COLUMNS) * (BOARD_BUTTON_HEIGHT + 4) + 16;
+		end
+	end
+	content:SetHeight(math.max(y, 1));
+
+	return Settings.RegisterCanvasLayoutSubcategory(parent, panel, "Sounds");
+end
+
+local category, soundBoard;
 
 SLASH_FOREVERUWU1 = "/uwu";
 SlashCmdList.FOREVERUWU = function(msg)
@@ -343,6 +411,8 @@ SlashCmdList.FOREVERUWU = function(msg)
 		if not Play(msg) then
 			print("|cffff80c0Forever UwU|r: no " .. msg .. " sounds installed.");
 		end
+	elseif msg == "sounds" and soundBoard then
+		Settings.OpenToCategory(soundBoard:GetID());
 	elseif category then
 		Settings.OpenToCategory(category:GetID());
 	end
@@ -371,6 +441,8 @@ frame:SetScript("OnEvent", function(self, event, arg1, ...)
 			db.volume = math.min(100, math.max(VOLUME_STEP,
 				math.floor(db.volume / VOLUME_STEP + 0.5) * VOLUME_STEP));
 			category = RegisterOptions();
+			soundBoard = RegisterSoundBoard(category);
+			Settings.RegisterAddOnCategory(category);
 		end
 	elseif event == "PLAYER_LOGIN" then
 		UpdateEvents(self);

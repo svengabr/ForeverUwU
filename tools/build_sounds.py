@@ -11,7 +11,7 @@ set (git-ignored, never packaged) holds clips that may not be redistributed.
 If a set has no raw/<set>/small folder, the small uwus are derived from its
 crit clips: shortened and about 12 dB quieter.
 
-Every clip is trimmed of leading/trailing silence, made mono and loudness-
+Every clip is trimmed to start right where its voice starts, made mono and loudness-
 normalized, so no clip is much louder than the others, and cut to 2.5 s. PlaySoundFile has no
 volume argument, so each clip is rendered once per volume level (LEVELS, in
 percent) and the addon's volume slider picks the level.
@@ -20,6 +20,7 @@ Usage:  python tools/build_sounds.py [public|local ...]   (default: both)
 Needs ffmpeg on PATH.
 """
 
+import array
 import shutil
 import subprocess
 import sys
@@ -33,10 +34,22 @@ SETS = {
     "local": (ROOT / "raw" / "local", ROOT / "sounds" / "local", ROOT / "SoundsLocal.lua"),
 }
 
-TRIM = (
-    "silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.02,"
-    "areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.05,areverse"
-)
+# The sound must start with the floating text, so a clip starts where its voice
+# does: the first sample within START_DB of its peak. Many clips have breath or
+# noise up to 30 dB under the voice before or after it; reverb tails within 24 dB
+# still count as a pause and are cut. PRE_ROLL before that point
+# is kept and faded in, so soft consonants don't start with a click. The end is
+# the last sample within END_DB of the peak, plus POST_ROLL faded out.
+RATE = 44100
+START_DB = -20
+END_DB = -24
+PRE_ROLL = 0.02
+POST_ROLL = 0.03
+# Clips with noise as loud as the voice in front of it, which no level threshold
+# can tell apart: raw clip name -> second where the voice starts.
+VOICE_START = {
+    "uwu-discord-gorl-36357": 2.08,  # fan-like hiss before the uwu
+}
 NORMALIZE = "loudnorm=I=-16:TP=-1.5:LRA=11"
 # A crit uwu must not ring on through the next fight: at most 2.5 s, faded out.
 CAP = "atrim=0:2.5,afade=t=out:st=2.1:d=0.4"
@@ -49,9 +62,33 @@ LEVELS = (20, 40, 60, 80, 100)
 def ffmpeg(src, dst, filters):
     dst.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(
+        # No tags from the source (titles, artists, comments) and no encoder tag either.
         ["ffmpeg", "-v", "error", "-y", "-i", str(src), "-vn", "-ac", "1", "-ar", "44100",
+         "-map_metadata", "-1", "-map_metadata:s:a", "-1", "-fflags", "+bitexact", "-flags:a", "+bitexact", "-metadata:s:a", "encoder=",
          "-af", filters, "-c:a", "libvorbis", "-q:a", "4", str(dst)],
         check=True,
+    )
+
+
+def trim(src):
+    """Returns the ffmpeg filters that cut src to its audible part."""
+    pcm = subprocess.run(
+        ["ffmpeg", "-v", "error", "-i", str(src), "-vn", "-ac", "1", "-ar", str(RATE), "-f", "f32le", "-"],
+        capture_output=True, check=True,
+    ).stdout
+    samples = array.array("f", pcm)
+    skip = int(VOICE_START.get(src.stem, 0) * RATE)
+    peak = max(abs(x) for x in samples)
+    loud = peak * 10 ** (START_DB / 20)
+    audible = peak * 10 ** (END_DB / 20)
+    first = next(i for i in range(skip, len(samples)) if abs(samples[i]) >= loud)
+    last = next(i for i in range(len(samples) - 1, -1, -1) if abs(samples[i]) >= audible)
+    start = max(skip / RATE, first / RATE - PRE_ROLL)
+    end = min(len(samples) / RATE, last / RATE + POST_ROLL)
+    fade_in = first / RATE - start
+    return (
+        f"atrim=start={start:.4f}:end={end:.4f},asetpts=PTS-STARTPTS,"
+        f"afade=t=in:d={fade_in:.4f},afade=t=out:st={end - start - POST_ROLL:.4f}:d={POST_ROLL}"
     )
 
 
@@ -67,7 +104,7 @@ def build(name):
     for pool in POOLS:
         sources = sorted(p for p in (raw_dir / pool).glob("*") if p.suffix.lower() in RAW_EXT)
         for src in sources:
-            ffmpeg(src, work / pool / (src.stem + ".ogg"), f"{TRIM},{CAP},{NORMALIZE}")
+            ffmpeg(src, work / pool / (src.stem + ".ogg"), f"{trim(src)},{CAP},{NORMALIZE}")
         names[pool] = [src.stem + ".ogg" for src in sources]
     if not names["small"]:
         for clip in names["crit"]:

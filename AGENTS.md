@@ -26,7 +26,8 @@ the player is in combat, so in a group other players' crits on the same target t
   Lua error in the client, not a silent fallback. Values from `UnitHealth` of other units are secret in combat
   and must not be compared.
 - **Options:** Esc > Options > AddOns > Forever UwU, SavedVariable `ForeverUwUDB`. `/uwu` opens them,
-  `/uwu crit|small|hurt` plays a test sound. Sounds play on the Master channel.
+  `/uwu crit|small|hurt` plays a test sound. A canvas subcategory **Sounds**
+  (`/uwu sounds`) lists every clip of every pool as a button. Sounds play on the Master channel.
 
 ## Sounds
 

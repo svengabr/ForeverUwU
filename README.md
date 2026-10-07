@@ -23,6 +23,7 @@ Open **Esc > Options > AddOns > Forever UwU**, or type `/uwu`.
 - Crit uwus, small uwus, angry uwus and the floating text can each be switched off.
 - Position of the floating text. Your character stands in the middle of the screen, so it sits at an offset from there.
 - Cooldowns for full and angry uwus, and the big-hit threshold.
+- **Sounds** page below it: every clip as a button, to hear each one. `/uwu sounds` opens it.
 
 Test sounds: `/uwu crit`, `/uwu small`, `/uwu hurt`.
 
