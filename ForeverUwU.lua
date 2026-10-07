@@ -215,6 +215,16 @@ local function OnUnitCombat(unit, event, flags, amount, school)
 		Debug(unit, event, flags, amount, "CRIT");
 		if UnitAffectingCombat("player") then
 			OnOwnCrit();
+		else
+			-- An opening crit arrives before the player's combat flag is set.
+			-- Someone else's crit leaves the player out of combat.
+			C_Timer.After(KILL_WINDOW, function()
+				if UnitAffectingCombat("player") then
+					OnOwnCrit();
+				else
+					Debug("crit ignored, not in combat");
+				end
+			end);
 		end
 		return;
 	end

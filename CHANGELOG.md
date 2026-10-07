@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- Fix: a crit on the opening hit of a fight (for example the first Arcane Missile) now plays an uwu. It was dropped because the client marks you as in combat only after that hit.
+
 ## 1.0.0
 
 - Initial release: a random uwu on your crits and crit heals, small quiet uwus when crits come fast, and an angry uwu / ara ara when you get crit or take a big hit.
