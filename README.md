@@ -1,5 +1,7 @@
 # Forever UwU
 
+<img src="https://raw.githubusercontent.com/svengabr/ForeverUwU/main/media/logo.png" alt="Forever UwU logo" width="128">
+
 A silly little addon for **World of Warcraft: Forever**: every crit deserves an uwu.
 
 - **You crit:** a random anime uwu plays when you land a critical hit or heal. Every clip plays once before any repeats.
@@ -8,6 +10,10 @@ A silly little addon for **World of Warcraft: Forever**: every crit deserves an 
 - **Floating uwu text:** every sound pops a cute "uwu~", "owo~" or "ara ara~" over your character, like the game's crit numbers. Only you see it.
 
 All sounds are leveled to the same loudness.
+
+![Every crit deserves an uwu](https://raw.githubusercontent.com/svengabr/ForeverUwU/main/media/gallery/01-overview.jpg)
+
+![Crit you? Ara ara~](https://raw.githubusercontent.com/svengabr/ForeverUwU/main/media/gallery/02-hurt.jpg)
 
 ## Options
 
@@ -19,6 +25,8 @@ Open **Esc > Options > AddOns > Forever UwU**, or type `/uwu`.
 - Cooldowns for full and angry uwus, and the big-hit threshold.
 
 Test sounds: `/uwu crit`, `/uwu small`, `/uwu hurt`.
+
+![Options](https://raw.githubusercontent.com/svengabr/ForeverUwU/main/media/gallery/03-options.jpg)
 
 ## Good to know
 
