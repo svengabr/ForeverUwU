@@ -1,0 +1,21 @@
+## Interface: 16001
+## Title: Forever UwU
+## Notes: Plays a random anime uwu with a speech bubble when you crit, and an angry uwu or ara ara when you get crit or take a big hit. Options under Options > AddOns, test with /uwu crit or /uwu hurt.
+## Author: Ashtar Senior
+#@debug@
+## Version: dev
+#@end-debug@
+#@non-debug@
+# ## Version: @project-version@
+#@end-non-debug@
+## IconTexture: Interface\AddOns\ForeverUwU\Icon
+## SavedVariables: ForeverUwUDB
+## X-License: GPL-3.0-or-later
+## X-Curse-Project-ID: 1732416
+
+Sounds.lua
+#@do-not-package@
+SoundsLocal.lua
+#@end-do-not-package@
+Bubble.lua
+ForeverUwU.lua

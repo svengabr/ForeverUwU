@@ -1,0 +1,182 @@
+/* Shared look for the CurseForge gallery images (1920×1080), same frame as the other Forever addons. */
+@font-face {
+  /* The addon's own font, copied from ../../fonts (git-ignored here, see README.md) */
+  font-family: "Mochiy";
+  src: url("fonts/MochiyPopOne-Regular.ttf");
+}
+@font-face {
+  /* Blizzard's font, extracted locally (fonts/ is git-ignored, see README.md) */
+  font-family: "Friz";
+  src: url("fonts/FRIZQT__.TTF");
+}
+
+:root {
+  --bg-1: #2b2633;
+  --bg-2: #14131a;
+  --frame: #8a7449;
+  --gold: #ffd200;
+  --pink: #ff8fc8;
+  --text: #e9e6df;
+  --muted: #a39f95;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { width: 1920px; height: 1080px; overflow: hidden; }
+
+body {
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(ellipse 55% 70% at 72% 50%, rgba(255, 143, 200, 0.14), transparent 70%),
+    radial-gradient(ellipse at 30% 20%, var(--bg-1), var(--bg-2) 75%);
+}
+body.hurt {
+  background:
+    radial-gradient(ellipse 55% 70% at 72% 50%, rgba(255, 70, 60, 0.16), transparent 70%),
+    radial-gradient(ellipse at 30% 20%, var(--bg-1), var(--bg-2) 75%);
+}
+
+.frame {
+  position: absolute; inset: 28px;
+  border: 2px solid var(--frame);
+  border-radius: 28px;
+  box-shadow: inset 0 0 0 6px rgba(0, 0, 0, 0.25), inset 0 0 120px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.brand {
+  position: absolute; top: 72px; left: 96px;
+  display: flex; align-items: center; gap: 18px;
+  font-family: "Friz", serif; font-size: 34px; color: var(--gold);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+.brand img { width: 64px; height: 64px; }
+
+.copy {
+  position: absolute; left: 96px; top: 0; bottom: 0; width: 720px;
+  display: flex; flex-direction: column; justify-content: center; gap: 28px;
+}
+.chip {
+  align-self: flex-start;
+  font-family: "Friz", serif; font-size: 24px; letter-spacing: 0.04em;
+  padding: 8px 20px; border-radius: 999px;
+  border: 2px solid currentColor; background: rgba(0, 0, 0, 0.35);
+}
+.copy h1 {
+  font-family: "Friz", serif; font-weight: normal;
+  font-size: 68px; line-height: 1.12; color: #fff;
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.6);
+}
+.copy p { font-size: 30px; line-height: 1.5; color: var(--text); }
+.copy .note { font-size: 22px; color: var(--muted); }
+
+.stage {
+  position: absolute; left: 860px; right: 72px; top: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Floating combat text, like the game's crit numbers */
+.fct {
+  position: absolute; font-family: "Friz", serif; line-height: 1; white-space: nowrap;
+  -webkit-text-stroke: 3px #000; paint-order: stroke fill;
+  text-shadow: 3px 4px 0 rgba(0, 0, 0, 0.85);
+}
+.fct.crit { color: #fff; font-size: 190px; }
+.fct.hit { color: #fff; font-size: 70px; opacity: 0.85; }
+.fct.dmg { color: #ff2a1a; font-size: 150px; }
+
+/* Speech bubble with the sound */
+.bubble {
+  position: absolute; white-space: nowrap;
+  font-family: "Friz", serif; font-size: 72px; color: #3a1426;
+  padding: 26px 46px 30px; border-radius: 60px;
+  background: linear-gradient(180deg, #fff1f6, #ffc4de);
+  border: 5px solid #3a1426;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+}
+.bubble::after {
+  content: ""; position: absolute; width: 46px; height: 46px; bottom: -26px; left: 70px;
+  background: #ffc8e0; border-right: 5px solid #3a1426; border-bottom: 5px solid #3a1426;
+  transform: rotate(45deg) skew(12deg, 12deg);
+}
+.bubble.small { font-size: 40px; padding: 14px 28px 16px; opacity: 0.8; }
+.bubble.small::after { width: 26px; height: 26px; bottom: -16px; left: 40px; border-width: 4px; }
+.bubble.angry { background: linear-gradient(180deg, #ffe0dc, #ff9c92); }
+.bubble.angry::after { background: #ffa196; }
+
+/* Mob nameplate */
+.plate { position: absolute; width: 420px; font-family: "Friz", serif; text-align: center; text-shadow: 2px 2px 0 #000; }
+.plate .name { font-size: 34px; color: #ff4a3a; margin-bottom: 10px; }
+.plate .bar { height: 26px; border: 3px solid #000; border-radius: 4px; background: #2a0b0b; overflow: hidden; }
+.plate .bar span { display: block; height: 100%; background: linear-gradient(180deg, #ff5a4a, #b0100a); }
+
+/* Player unit frame */
+.unit {
+  position: absolute; width: 640px; display: flex; align-items: center; gap: 26px;
+  padding: 22px 30px; border-radius: 16px;
+  background: linear-gradient(180deg, rgba(20, 20, 24, 0.96), rgba(10, 10, 13, 0.96));
+  border: 3px solid #5d5a52; box-shadow: inset 0 0 0 2px #1a1a1a, 0 24px 60px rgba(0, 0, 0, 0.7);
+  font-family: "Friz", serif; text-shadow: 2px 2px 0 #000;
+}
+.unit .portrait {
+  width: 140px; height: 140px; border-radius: 50%; flex: none;
+  border: 5px solid #c9a45c; background: url("../logo.png") center / 170% no-repeat, #2b2633;
+  box-shadow: inset 0 0 0 4px rgba(255, 60, 40, 0.55), 0 0 40px rgba(255, 40, 30, 0.5);
+}
+.unit .bars { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.unit .name { font-size: 34px; color: var(--gold); }
+.unit .bar { height: 34px; border: 3px solid #000; border-radius: 4px; background: #0b1a0b; overflow: hidden; position: relative; }
+.unit .bar span { display: block; height: 100%; }
+.unit .hp span { background: linear-gradient(180deg, #4ad04a, #12801a); }
+.unit .hp .lost { position: absolute; top: 0; height: 100%; background: linear-gradient(180deg, #ff6a5a, #b0100a); }
+.unit .mp { height: 24px; background: #0b0b1a; }
+.unit .mp span { background: linear-gradient(180deg, #ffe066, #c9a000); }
+.unit .val { position: absolute; inset: 0; display: grid; place-items: center; font-size: 22px; color: #fff; }
+
+/* Options panel */
+.settings {
+  width: 1000px; display: grid; grid-template-columns: 270px 1fr;
+  background: linear-gradient(180deg, rgba(20, 20, 24, 0.98), rgba(10, 10, 13, 0.98));
+  border: 3px solid #5d5a52; border-radius: 12px; overflow: hidden;
+  box-shadow: inset 0 0 0 2px #1a1a1a, 0 24px 60px rgba(0, 0, 0, 0.7);
+  font-family: "Friz", serif; color: #fff; text-shadow: 2px 2px 0 #000;
+}
+.settings .side { padding: 22px 0; border-right: 2px solid #2b2a27; background: rgba(0, 0, 0, 0.3); font-size: 21px; }
+.settings .side div { padding: 10px 24px; color: #d0cdc5; white-space: nowrap; }
+.settings .side .head { color: var(--gold); font-size: 22px; padding-top: 16px; }
+.settings .side .sel {
+  background: linear-gradient(90deg, rgba(255, 210, 0, 0.22), transparent);
+  color: #fff; border-left: 4px solid var(--gold); padding-left: 20px;
+}
+.settings .main { padding: 28px 36px 32px; display: flex; flex-direction: column; gap: 14px; }
+.settings h2 { font-weight: normal; font-size: 34px; color: var(--gold); padding-bottom: 12px; margin-bottom: 4px; border-bottom: 2px solid #6b5a35; }
+.settings .row { display: flex; align-items: center; gap: 20px; font-size: 24px; min-height: 44px; }
+.settings .row .label { flex: 1; white-space: nowrap; }
+.settings .box {
+  width: 32px; height: 32px; flex: none; border-radius: 5px;
+  background: #1b1b1f; border: 2px solid #6a6a70; display: grid; place-items: center;
+}
+.settings .box.on::after { content: "✔"; font: bold 30px/1 "Segoe UI Symbol", sans-serif; color: var(--gold); }
+.settings .slider { width: 190px; height: 10px; border-radius: 5px; background: #2a2a30; border: 1px solid #000; position: relative; flex: none; }
+.settings .slider i { position: absolute; top: 50%; width: 22px; height: 30px; transform: translate(-50%, -50%); border-radius: 4px; background: linear-gradient(180deg, #e8d7a0, #a88a40); border: 2px solid #000; }
+.settings .slider-val { width: 90px; font-size: 22px; color: var(--muted); text-align: right; }
+.settings .button {
+  padding: 6px 26px; border-radius: 6px; font-size: 22px; color: var(--gold);
+  background: linear-gradient(180deg, #8a1010, #4a0606); border: 2px solid #c9a45c;
+}
+.settings .hl {
+  box-shadow: 0 0 0 2px rgba(255, 143, 200, 0.6), 0 0 30px rgba(255, 143, 200, 0.25);
+  border-radius: 8px; padding: 6px 14px; margin: 0 -14px;
+}
+
+/* Floating uwu text, as the addon draws it over the character */
+.uwu {
+  position: absolute; white-space: nowrap; line-height: 1;
+  font-family: "Mochiy", sans-serif; font-size: 96px; color: #ff7dc2;
+  -webkit-text-stroke: 10px #000; paint-order: stroke fill;
+  text-shadow: 0 6px 0 #3a0820;
+}
+.uwu.small { font-size: 52px; color: #ff9fd6; -webkit-text-stroke-width: 7px; opacity: 0.8; }
+.uwu.hurt { color: #ff5a4a; }
+.uwu .heart { display: inline-block; width: 64px; height: 64px; margin-left: 10px; vertical-align: 30px; background: url("heart.png") center / contain no-repeat; }

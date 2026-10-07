@@ -1,0 +1,19 @@
+package-as: ForeverUwU
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+ignore:
+  - .gitignore
+  - .luacheckrc
+  - .github
+  - .pkgmeta
+  - media
+  - dist
+  - raw
+  - tools
+  - sounds/local
+  - SoundsLocal.lua
+  - AGENTS.md
+  - CLAUDE.md
