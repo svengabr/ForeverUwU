@@ -31,7 +31,7 @@ Test sounds: `/uwu crit`, `/uwu small`, `/uwu hurt`.
 
 ## Good to know
 
-WoW: Forever doesn't let addons read the combat log. Forever UwU uses the same hit events as the damage numbers on your unit frames instead. Those don't say who hit, so in a group your party's crits on your target can trigger an uwu too. Crits that kill a mob come without the crit flag; the addon guesses those from the hit size.
+WoW: Forever doesn't let addons read the combat log. Forever UwU uses the same hit events as the damage numbers on your unit frames instead. Those cover only you, your target and mobs with a visible nameplate, so crits on other mobs (Swipe, Cleave, Multi-Shot) need enemy nameplates turned on (default key V). The events don't say who hit, so a crit only counts when it lands together with your own swing, shot, spell or channel. Another player's crit at the same moment can still slip through, and crits from damage over time or your pet stay silent. Crits that kill a mob come without the crit flag; the addon guesses those from the hit size.
 
 ## Install
 

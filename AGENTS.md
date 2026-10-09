@@ -10,8 +10,15 @@ maximum health. Everything lives in `ForeverUwU.lua`.
 
 **No combat log:** on WoW: Forever, registering `COMBAT_LOG_EVENT_UNFILTERED` is a forbidden action for addons
 (`ADDON_ACTION_FORBIDDEN`). The addon uses `UNIT_COMBAT` for `player` and `target` instead (flags `CRITICAL` /
-`CRUSHING`, events `WOUND` / `HEAL`). It carries no source: a crit on the target counts as the player's own while
-the player is in combat, so in a group other players' crits on the same target trigger it too.
+`CRUSHING`, events `WOUND` / `HEAL`). Other mobs (Swipe, Cleave …) are only visible through `nameplateN` units, so
+`UNIT_COMBAT` is registered for all units and filtered; nameplate units count only `WOUND` crits on attackable units,
+and the target's duplicate from its own nameplate (same frame, same values) is merged. `UnitIsUnit` /
+`UnitThreatSituation` can return secrets in combat, so they're not used. The event carries no source (the damage meter
+API is secret in combat), so a crit counts as the player's own only when it lines up with a player action:
+`PLAYER_SWING` fires at swing start and the hit follows ~0.5 s later, so a crit on the target counts up to 1 s
+after a swing; any crit counts up to 1.5 s after `UNIT_SPELLCAST_SUCCEEDED` / a ranged swing or during a channel.
+Whether a nameplate crit is on the target is known from the target unit's copy in the same frame, so crits wait
+until the end of the frame. Other players' crits inside such a window still count; DoT/HoT ticks and pet hits are missed.
 
 - **Pools:** `crit` (full uwu), `small` (short quiet uwu), `hurt` (angry uwu / ara ara). Each pool is a shuffle
   bag: every clip plays once before one repeats.

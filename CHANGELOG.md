@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1
+
+- Fix: crits on mobs other than your target (Swipe, Cleave, Multi-Shot …) now play an uwu. The addon sees those mobs through their nameplates, so enemy nameplates have to be on (default key V).
+- Fix: other players' crits no longer play an uwu. A crit only counts when it lands together with your own swing, shot, spell or channel. Crits from damage over time and pets stay silent.
+
 ## 1.1.0
 
 - Many more voices: uwus from Hannah OwO, Pokimane, Ironmouse, Gawr Gura, Kobo, Neuro-sama and more, plus tuturu, nyanpasu and nico nico nii. More ara aras, Chika's "hiiih!" and a few more angry sounds for big hits.

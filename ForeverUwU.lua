@@ -116,9 +116,8 @@ end
 -- The combat log is off limits to addons on this client (registering
 -- COMBAT_LOG_EVENT_UNFILTERED is a forbidden action), so this uses UNIT_COMBAT,
 -- the event behind the hit numbers on the unit frames, plus COMBAT_TEXT_UPDATE,
--- which names crits on the player as *_CRIT. UNIT_COMBAT has no source, so a
--- crit on the target counts as the player's own while the player is in combat;
--- in a group, other players' crits on the same target count too.
+-- which names crits on the player as *_CRIT. Neither has a source; see
+-- WasMine below for how the player's own crits are told apart.
 --
 -- A killing blow comes without the CRITICAL flag even when it crit. Mobs often
 -- die after a few hits, so most crits are killing blows. For those, a hit
@@ -160,6 +159,57 @@ local function Debug(...)
 	end
 end
 
+-- UNIT_COMBAT has no source, so a crit counts as the player's own only when
+-- it lines up with something the player did: a melee swing or a spell, auto
+-- shot or channel that may still be on its way. PLAYER_SWING fires when the
+-- swing starts, the hit shows up about half a second later (server round
+-- trip), and auto attacks only ever hit the target, so swings only vouch for
+-- crits on the target. Crits of other players outside such a window are
+-- dropped; one landing inside it still slips through. Periodic ticks (DoTs,
+-- HoTs) and pet hits come without an action of the player and are missed.
+local SWING_SLACK = 0.15;
+local SWING_WINDOW = 1;
+local CAST_WINDOW = 1.5;
+local lastSwing, lastCast = -100, -100;
+local channeling = false;
+
+local function WasMine(time, onTarget)
+	return channeling
+		or (time - lastCast >= -SWING_SLACK and time - lastCast <= CAST_WINDOW)
+		or (onTarget and time - lastSwing >= -SWING_SLACK and time - lastSwing <= SWING_WINDOW);
+end
+
+local function OnCritIfMine(time, onTarget)
+	time = time or GetTime();
+	if WasMine(time, onTarget) then
+		OnOwnCrit();
+		return;
+	end
+	-- The cast event may arrive a moment after the hit it belongs to.
+	C_Timer.After(SWING_SLACK, function()
+		if WasMine(time, onTarget) then
+			OnOwnCrit();
+		else
+			Debug(("crit ignored, not mine (%s, swing %+.2f s, cast %+.2f s)"):format(
+				onTarget and "target" or "not target", lastSwing - time, lastCast - time));
+		end
+	end);
+end
+
+-- Enum.PlayerSwingType.Ranged; a missing Enum table would be a hidden Lua error
+-- that silently drops every melee crit.
+local RANGED_SWING = 2;
+
+local function OnSwing(swingType)
+	Debug("swing", swingType);
+	if swingType == RANGED_SWING then
+		-- The shot still has to fly.
+		lastCast = GetTime();
+	else
+		lastSwing = GetTime();
+	end
+end
+
 local CRIT_TEXT = {
 	DAMAGE_CRIT = "hurt",
 	SPELL_DAMAGE_CRIT = "hurt",
@@ -175,7 +225,7 @@ local function OnCombatText(textType)
 	if kind == "hurt" then
 		OnHurt();
 	elseif kind == "crit" then
-		OnOwnCrit();
+		OnCritIfMine();
 	end
 end
 
@@ -192,11 +242,54 @@ local function OnKillingBlow(how)
 	local crit = LooksLikeCrit(hit.school, hit.amount);
 	Debug("kill", hit.amount, "school " .. tostring(hit.school), how, crit and "CRIT" or "");
 	if crit then
-		OnOwnCrit();
+		OnCritIfMine(hit.time, true);
 	end
 end
 
+-- Mobs other than the target (Swipe, Cleave, multi-dotting) are only seen
+-- through their nameplates, so only while enemy nameplates are shown. The
+-- target also has a nameplate and reports every hit twice; the copy arrives in
+-- the same frame with the same values. UnitIsUnit can't tell them apart, its
+-- result may be secret in combat. So a crit waits for the end of the frame,
+-- and a copy from the target unit marks it as a crit on the target.
+local pendingCrit;
+
+local function QueueCrit(onTarget, event, flags, amount)
+	local key = GetTime() .. event .. flags .. amount;
+	if pendingCrit and pendingCrit.key == key then
+		pendingCrit.onTarget = pendingCrit.onTarget or onTarget;
+		return;
+	end
+	local crit = { key = key, onTarget = onTarget, time = GetTime() };
+	pendingCrit = crit;
+	C_Timer.After(0, function()
+		if pendingCrit == crit then
+			pendingCrit = nil;
+		end
+		OnCritIfMine(crit.time, crit.onTarget);
+	end);
+end
+
+local function OnNamePlateCombat(unit, event, flags, amount, school)
+	-- Only crits; the killing blow guess stays with the target. Hits on
+	-- friendly nameplates and heals are other people's business.
+	if event ~= "WOUND" or (flags ~= "CRITICAL" and flags ~= "CRUSHING") then
+		return;
+	end
+	if not UnitCanAttack("player", unit) then
+		return;
+	end
+	Debug(unit, event, flags, amount, "school " .. tostring(school), "CRIT");
+	QueueCrit(false, event, flags, amount);
+end
+
 local function OnUnitCombat(unit, event, flags, amount, school)
+	if strfind(unit, "^nameplate") then
+		OnNamePlateCombat(unit, event, flags, amount, school);
+		return;
+	elseif unit ~= "player" and unit ~= "target" then
+		return;
+	end
 	local critical = flags == "CRITICAL" or flags == "CRUSHING";
 	if unit == "player" then
 		Debug(unit, event, flags, amount, critical and "CRIT" or "");
@@ -206,7 +299,7 @@ local function OnUnitCombat(unit, event, flags, amount, school)
 				OnHurt();
 			end
 		elseif event == "HEAL" and critical then
-			OnOwnCrit();
+			OnCritIfMine();
 		end
 		return;
 	end
@@ -216,19 +309,7 @@ local function OnUnitCombat(unit, event, flags, amount, school)
 	end
 	if critical then
 		Debug(unit, event, flags, amount, "CRIT");
-		if UnitAffectingCombat("player") then
-			OnOwnCrit();
-		else
-			-- An opening crit arrives before the player's combat flag is set.
-			-- Someone else's crit leaves the player out of combat.
-			C_Timer.After(KILL_WINDOW, function()
-				if UnitAffectingCombat("player") then
-					OnOwnCrit();
-				else
-					Debug("crit ignored, not in combat");
-				end
-			end);
-		end
+		QueueCrit(true, event, flags, amount);
 		return;
 	end
 	if event ~= "WOUND" or amount <= 0 then
@@ -242,7 +323,7 @@ local function OnUnitCombat(unit, event, flags, amount, school)
 	if pendingHit then
 		Remember(pendingHit.school, pendingHit.amount);
 	end
-	local hit = { school = school, amount = amount };
+	local hit = { school = school, amount = amount, time = GetTime() };
 	pendingHit = hit;
 	if UnitIsDead(unit) then
 		OnKillingBlow("dead now");
@@ -266,13 +347,23 @@ end
 
 local function UpdateEvents(frame)
 	if db.enabled then
-		frame:RegisterUnitEvent("UNIT_COMBAT", "player", "target");
+		-- RegisterUnitEvent takes at most two units; nameplates come and go.
+		frame:RegisterEvent("UNIT_COMBAT");
 		frame:RegisterEvent("COMBAT_TEXT_UPDATE");
 		frame:RegisterEvent("CHAT_MSG_COMBAT_XP_GAIN");
+		frame:RegisterEvent("PLAYER_SWING");
+		frame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player");
+		frame:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", "player");
+		frame:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", "player");
 	else
 		frame:UnregisterEvent("UNIT_COMBAT");
 		frame:UnregisterEvent("COMBAT_TEXT_UPDATE");
 		frame:UnregisterEvent("CHAT_MSG_COMBAT_XP_GAIN");
+		frame:UnregisterEvent("PLAYER_SWING");
+		frame:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED");
+		frame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_START");
+		frame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_STOP");
+		channeling = false;
 	end
 end
 
@@ -427,6 +518,16 @@ frame:SetScript("OnEvent", function(self, event, arg1, ...)
 		OnCombatText(arg1);
 	elseif event == "CHAT_MSG_COMBAT_XP_GAIN" then
 		OnKillingBlow("xp");
+	elseif event == "PLAYER_SWING" then
+		OnSwing(...);
+	elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+		lastCast = GetTime();
+	elseif event == "UNIT_SPELLCAST_CHANNEL_START" then
+		channeling = true;
+	elseif event == "UNIT_SPELLCAST_CHANNEL_STOP" then
+		-- The last tick can land after the channel ends.
+		channeling = false;
+		lastCast = GetTime();
 	elseif event == "ADDON_LOADED" then
 		if arg1 == ADDON_NAME then
 			self:UnregisterEvent("ADDON_LOADED");
