@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2
+
+- Fix: Lua error "attempt to compare local 'amount' (a secret number value)" when you get hit in combat. The client now hides hit amounts in combat; then only crits and crushing blows play the angry uwu, big normal hits don't.
+
 ## 1.1.1
 
 - Fix: crits on mobs other than your target (Swipe, Cleave, Multi-Shot …) now play an uwu. The addon sees those mobs through their nameplates, so enemy nameplates have to be on (default key V).

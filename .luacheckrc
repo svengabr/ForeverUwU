@@ -15,6 +15,7 @@ read_globals = {
   "CreateSettingsButtonInitializer",
   "CreateFrame",
   "GetTime",
+  "issecretvalue",
   "MinimalSliderWithSteppersMixin",
   "PlaySoundFile",
   "Settings",

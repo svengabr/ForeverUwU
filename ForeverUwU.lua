@@ -255,7 +255,7 @@ end
 local pendingCrit;
 
 local function QueueCrit(onTarget, event, flags, amount)
-	local key = GetTime() .. event .. flags .. amount;
+	local key = GetTime() .. event .. flags .. tostring(amount);
 	if pendingCrit and pendingCrit.key == key then
 		pendingCrit.onTarget = pendingCrit.onTarget or onTarget;
 		return;
@@ -284,6 +284,11 @@ local function OnNamePlateCombat(unit, event, flags, amount, school)
 end
 
 local function OnUnitCombat(unit, event, flags, amount, school)
+	-- The amount can be a secret value in combat; comparing it is a Lua error.
+	-- Then it is unknown: only the crit flag counts, no big hit or kill guess.
+	if issecretvalue and issecretvalue(amount) then
+		amount = nil;
+	end
 	if strfind(unit, "^nameplate") then
 		OnNamePlateCombat(unit, event, flags, amount, school);
 		return;
@@ -295,7 +300,7 @@ local function OnUnitCombat(unit, event, flags, amount, school)
 		Debug(unit, event, flags, amount, critical and "CRIT" or "");
 		if event == "WOUND" then
 			local maxHealth = UnitHealthMax("player");
-			if critical or (maxHealth > 0 and amount >= maxHealth * db.hurtPercent / 100) then
+			if critical or (amount and maxHealth > 0 and amount >= maxHealth * db.hurtPercent / 100) then
 				OnHurt();
 			end
 		elseif event == "HEAL" and critical then
@@ -312,7 +317,7 @@ local function OnUnitCombat(unit, event, flags, amount, school)
 		QueueCrit(true, event, flags, amount);
 		return;
 	end
-	if event ~= "WOUND" or amount <= 0 then
+	if event ~= "WOUND" or not amount or amount <= 0 then
 		return;
 	end
 	-- The target's health is a secret value in combat, so a killing blow shows
