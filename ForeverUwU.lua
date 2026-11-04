@@ -401,10 +401,13 @@ local function RegisterOptions()
 	Slider("volume", "Volume",
 		"Volume of the uwus, on top of the game's master volume. The clips are already leveled so none is much louder than the others.",
 		VOLUME_STEP, 100, VOLUME_STEP, "%d %%");
+	-- No search tags (last argument false): added from addon code, the tag table
+	-- is tainted, and Blizzard's options search reads it for every keystroke, so
+	-- unrelated protected settings (Discord display name) got blocked.
 	if CreateSettingsButtonInitializer then
 		Settings.RegisterInitializer(category, CreateSettingsButtonInitializer("Test sound", "Play uwu", function()
 			Play("crit");
-		end, "Plays one uwu at the volume above.", true));
+		end, "Plays one uwu at the volume above.", false));
 	end
 
 	Checkbox("bubbles", "Floating uwu text",

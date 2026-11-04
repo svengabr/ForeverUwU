@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fix: searching the game's Options (e.g. for "name") raised `ADDON_ACTION_FORBIDDEN … IsUserOAuthed()` and blamed ForeverUwU. The "Test sound" button no longer shows up in the Options search; it is still on the Forever UwU page.
+
 ## 1.1.2
 
 - Fix: Lua error "attempt to compare local 'amount' (a secret number value)" when you get hit in combat. The client now hides hit amounts in combat; then only crits and crushing blows play the angry uwu, big normal hits don't.
