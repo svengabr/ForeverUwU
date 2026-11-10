@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+
+- New sound pack **Hitmarker**, to pick under Options > AddOns > Forever UwU > Sound pack: your crits play the hit marker tick of old shooters and flash a hit marker over your character instead of the uwu text; a crit or big hit on you plays a sniper shot and flashes the hit marker in red. The uwus stay the default.
+- Fix: crits on mobs tagged by players outside your group no longer play a sound.
+
 ## 1.1.3
 
 - Fix: searching the game's Options (e.g. for "name") raised `ADDON_ACTION_FORBIDDEN … IsUserOAuthed()` and blamed ForeverUwU. The "Test sound" button no longer shows up in the Options search; it is still on the Forever UwU page.
