@@ -45,4 +45,4 @@ See [CREDITS.md](CREDITS.md) for where the clips come from. The floating text us
 
 ## Support
 
-The addon is free and always will be. If it made your game a bit cuter, you can [buy me a coffee](https://buymeacoffee.com/conoar).
+The addon is free and always will be. If it made your game a bit cuter, you can [buy me a coffee](https://buymeacoffee.com/conoar) or send something via [PayPal](https://paypal.me/svengabr).
