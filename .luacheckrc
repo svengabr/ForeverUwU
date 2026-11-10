@@ -24,6 +24,7 @@ read_globals = {
   "UnitHealthMax",
   "UnitExists",
   "UnitIsDead",
+  "UnitIsTapDenied",
   "strfind",
   "strlower",
   "strtrim",

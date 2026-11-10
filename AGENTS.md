@@ -18,7 +18,8 @@ API is secret in combat), so a crit counts as the player's own only when it line
 `PLAYER_SWING` fires at swing start and the hit follows ~0.5 s later, so a crit on the target counts up to 1 s
 after a swing; any crit counts up to 1.5 s after `UNIT_SPELLCAST_SUCCEEDED` / a ranged swing or during a channel.
 Whether a nameplate crit is on the target is known from the target unit's copy in the same frame, so crits wait
-until the end of the frame. Other players' crits inside such a window still count; DoT/HoT ticks and pet hits are missed.
+until the end of the frame. Hits on mobs tagged outside the group (`UnitIsTapDenied`, not secret) are ignored.
+Other players' crits on the player's own mobs inside such a window still count; DoT/HoT ticks and pet hits are missed.
 
 - **Pools:** `crit` (full uwu), `small` (short quiet uwu), `hurt` (angry uwu / ara ara). Each pool is a shuffle
   bag: every clip plays once before one repeats.

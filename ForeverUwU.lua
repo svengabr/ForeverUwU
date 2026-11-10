@@ -276,7 +276,8 @@ local function OnNamePlateCombat(unit, event, flags, amount, school)
 	if event ~= "WOUND" or (flags ~= "CRITICAL" and flags ~= "CRUSHING") then
 		return;
 	end
-	if not UnitCanAttack("player", unit) then
+	-- Mobs tagged by players outside the group: see OnUnitCombat.
+	if not UnitCanAttack("player", unit) or UnitIsTapDenied(unit) then
 		return;
 	end
 	Debug(unit, event, flags, amount, "school " .. tostring(school), "CRIT");
@@ -293,6 +294,11 @@ local function OnUnitCombat(unit, event, flags, amount, school)
 		OnNamePlateCombat(unit, event, flags, amount, school);
 		return;
 	elseif unit ~= "player" and unit ~= "target" then
+		return;
+	end
+	-- A mob tagged by someone outside the group is their fight; their crits on
+	-- it would otherwise pass whenever they line up with a cast of the player.
+	if event == "WOUND" and unit == "target" and UnitIsTapDenied(unit) then
 		return;
 	end
 	local critical = flags == "CRITICAL" or flags == "CRUSHING";
