@@ -15,6 +15,7 @@ local DEFAULTS = {
 	hurtCooldown = 3,
 	hurtPercent = 25,
 	volume = 60,
+	pack = "uwu",
 	bubbles = true,
 	bubbleX = 40,
 	bubbleY = 140,
@@ -29,8 +30,26 @@ local VOLUME_STEP = 20;
 local SMALL_GAP = 0.2;
 local CHANNEL = "Master";
 
+-- Sound packs, in the order of the options dropdown. Only one plays at a
+-- time (db.pack). Sound lists built before packs existed carry no pack name
+-- and belong to the first one.
+local PACKS = {
+	{ id = "uwu", label = "UwU" },
+	{ id = "hitmarker", label = "Hitmarker" },
+};
+local DEFAULT_PACK = PACKS[1].id;
+
 local db;
 local lastCrit, lastSmall, lastHurt = 0, 0, 0;
+
+local function HasSounds(pack)
+	for _, list in ipairs(ns.soundLists or {}) do
+		if (list.pack or DEFAULT_PACK) == pack and (#(list.crit or {}) > 0 or #(list.hurt or {}) > 0) then
+			return true;
+		end
+	end
+	return false;
+end
 
 -- Shuffle bag per pool: every clip plays once before any clip repeats,
 -- and the last clip of a round never opens the next one.
@@ -39,8 +58,10 @@ local bags = {};
 local function Pool(kind)
 	local pool = {};
 	for _, list in ipairs(ns.soundLists or {}) do
-		for _, path in ipairs(list[kind] or {}) do
-			pool[#pool + 1] = path;
+		if (list.pack or DEFAULT_PACK) == db.pack then
+			for _, path in ipairs(list[kind] or {}) do
+				pool[#pool + 1] = path;
+			end
 		end
 	end
 	return pool;
@@ -70,9 +91,9 @@ local function NextSound(kind)
 	return path;
 end
 
-local function PlayPath(kind, path)
+local function PlayPath(kind, path, pack)
 	if db.bubbles then
-		ns.ShowBubble(kind, db.bubbleX, db.bubbleY);
+		ns.ShowBubble(kind, db.bubbleX, db.bubbleY, pack or db.pack);
 	end
 	if path then
 		PlaySoundFile(path:format(db.volume), CHANNEL);
@@ -407,6 +428,29 @@ local function RegisterOptions()
 	Slider("volume", "Volume",
 		"Volume of the uwus, on top of the game's master volume. The clips are already leveled so none is much louder than the others.",
 		VOLUME_STEP, 100, VOLUME_STEP, "%d %%");
+	-- Only worth a dropdown when a second pack is installed.
+	local installed = {};
+	for _, pack in ipairs(PACKS) do
+		if HasSounds(pack.id) then
+			installed[#installed + 1] = pack;
+		end
+	end
+	if #installed > 1 then
+		local setting = Settings.RegisterAddOnSetting(category, "FOREVER_UWU_PACK", "pack",
+			db, Settings.VarType.String, "Sound pack", DEFAULTS.pack);
+		setting:SetValueChangedCallback(function()
+			-- The bags still hold clips of the old pack.
+			bags = {};
+		end);
+		Settings.CreateDropdown(category, setting, function()
+			local container = Settings.CreateControlTextContainer();
+			for _, pack in ipairs(installed) do
+				container:Add(pack.id, pack.label);
+			end
+			return container:GetData();
+		end, "Which sounds play: anime uwus, or the hit marker tick of old shooters. "
+			.. "The floating text changes with it.");
+	end
 	-- No search tags (last argument false): added from addon code, the tag table
 	-- is tainted, and Blizzard's options search reads it for every keystroke, so
 	-- unrelated protected settings (Discord display name) got blocked.
@@ -468,11 +512,23 @@ local function RegisterSoundBoard(parent)
 	scroll:SetScrollChild(content);
 
 	local y = 0;
-	for _, pool in ipairs(BOARD_POOLS) do
+	local sections = {};
+	for _, pack in ipairs(PACKS) do
+		for _, pool in ipairs(BOARD_POOLS) do
+			sections[#sections + 1] = {
+				pack = pack.id,
+				kind = pool.kind,
+				title = pack.id == DEFAULT_PACK and pool.title or (pack.label .. ": " .. pool.kind),
+			};
+		end
+	end
+	for _, pool in ipairs(sections) do
 		local clips = {};
 		for _, list in ipairs(ns.soundLists or {}) do
-			for _, path in ipairs(list[pool.kind] or {}) do
-				clips[#clips + 1] = { path = path, set = list.set };
+			if (list.pack or DEFAULT_PACK) == pool.pack then
+				for _, path in ipairs(list[pool.kind] or {}) do
+					clips[#clips + 1] = { path = path, set = list.set };
+				end
 			end
 		end
 		if #clips > 0 then
@@ -491,9 +547,9 @@ local function RegisterSoundBoard(parent)
 					label = label .. " (" .. clip.set .. ")";
 				end
 				button:SetText(label);
-				local kind, path = pool.kind, clip.path;
+				local kind, path, pack = pool.kind, clip.path, pool.pack;
 				button:SetScript("OnClick", function()
-					PlayPath(kind, path);
+					PlayPath(kind, path, pack);
 				end);
 			end
 			y = y + math.ceil(#clips / BOARD_COLUMNS) * (BOARD_BUTTON_HEIGHT + 4) + 16;
@@ -555,6 +611,10 @@ frame:SetScript("OnEvent", function(self, event, arg1, ...)
 			-- Only the rendered levels exist as files.
 			db.volume = math.min(100, math.max(VOLUME_STEP,
 				math.floor(db.volume / VOLUME_STEP + 0.5) * VOLUME_STEP));
+			-- A pack that is gone (local clips removed) would leave the addon mute.
+			if not HasSounds(db.pack) then
+				db.pack = DEFAULT_PACK;
+			end
 			category = RegisterOptions();
 			soundBoard = RegisterSoundBoard(category);
 			Settings.RegisterAddOnCategory(category);

@@ -28,6 +28,19 @@ local STYLES = {
 	hurt = { text = { 1, 0.35, 0.29 }, scale = 1, alpha = 1 },
 };
 
+-- Sound packs other than the uwu one bring their own look. A style with an
+-- icon shows that texture instead of a text; lifetime and rise override the
+-- floating of the uwu text. The hitmarker flashes in place like the one in
+-- the shooters it comes from: white on a hit, red when the player is hit.
+local PACK_STYLES = {
+	hitmarker = {
+		crit = { text = { 1, 1, 1 }, scale = 1, alpha = 1, icon = "hitmarker", lifetime = 0.45, rise = 0 },
+		small = { text = { 1, 1, 1 }, scale = 0.6, alpha = 0.8, icon = "hitmarker", lifetime = 0.35, rise = 0 },
+		hurt = { text = { 1, 0.2, 0.15 }, scale = 1.2, alpha = 1, icon = "hitmarker", lifetime = 0.6, rise = 0 },
+	},
+};
+local ICON_FADE = 0.2;
+
 local popups = {};
 
 -- Pops past full size and settles back: 0.5 -> 1.25 -> 1.
@@ -45,18 +58,20 @@ end
 local function OnUpdate(self, elapsed)
 	self.age = self.age + elapsed;
 	local age = self.age;
-	if age >= LIFETIME then
+	local style = self.style;
+	local lifetime = style.lifetime or LIFETIME;
+	if age >= lifetime then
 		self:Hide();
 		return;
 	end
-	local style = self.style;
+	local fadeTime = style.icon and ICON_FADE or FADE;
 	local scale = style.scale * PopScale(age);
-	local fade = age > LIFETIME - FADE and (LIFETIME - age) / FADE or 1;
+	local fade = age > lifetime - fadeTime and (lifetime - age) / fadeTime or 1;
 	self:SetScale(scale);
 	self:SetAlpha(style.alpha * math.min(1, age / 0.08) * fade);
 	-- Offsets are in the frame's own scale, so undo it to keep the spot fixed.
 	self:ClearAllPoints();
-	self:SetPoint("CENTER", UIParent, "CENTER", self.x / scale, (self.y + RISE * age / LIFETIME) / scale);
+	self:SetPoint("CENTER", UIParent, "CENTER", self.x / scale, (self.y + (style.rise or RISE) * age / lifetime) / scale);
 end
 
 local function CreatePopup()
@@ -76,6 +91,10 @@ local function CreatePopup()
 	f.heart:SetTexture(MEDIA .. "textures\\heart");
 	f.heart:SetSize(30, 30);
 	f.heart:SetPoint("LEFT", f.text, "RIGHT", 6, 10);
+
+	f.icon = f:CreateTexture(nil, "OVERLAY");
+	f.icon:SetSize(64, 64);
+	f.icon:SetPoint("CENTER");
 
 	f:SetScript("OnUpdate", OnUpdate);
 	return f;
@@ -100,9 +119,10 @@ local function Acquire()
 	return oldest;
 end
 
-function ns.ShowBubble(kind, x, y)
-	local texts, style = TEXTS[kind], STYLES[kind];
-	if not texts then
+function ns.ShowBubble(kind, x, y, pack)
+	local texts = TEXTS[kind];
+	local style = (PACK_STYLES[pack] or STYLES)[kind];
+	if not texts or not style then
 		return;
 	end
 	local f = Acquire();
@@ -114,8 +134,15 @@ function ns.ShowBubble(kind, x, y)
 		f.x = x + math.random(-110, 110);
 		f.y = y + math.random(-40, 60);
 	end
-	f.text:SetText(texts[math.random(#texts)]);
-	f.text:SetTextColor(unpack(style.text));
+	f.text:SetShown(not style.icon);
+	f.icon:SetShown(style.icon ~= nil);
+	if style.icon then
+		f.icon:SetTexture(MEDIA .. "textures\\" .. style.icon);
+		f.icon:SetVertexColor(unpack(style.text));
+	else
+		f.text:SetText(texts[math.random(#texts)]);
+		f.text:SetTextColor(unpack(style.text));
+	end
 	f.heart:SetShown(style.heart == true);
 	f.heart:SetVertexColor(unpack(style.text));
 	OnUpdate(f, 0);

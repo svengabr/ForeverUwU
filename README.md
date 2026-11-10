@@ -8,6 +8,7 @@ A silly little addon for **World of Warcraft: Forever**: every crit deserves an 
 - **Crits come fast?** Between full uwus (at most one every 1.5 s) you get small, quiet uwus instead of a wall of noise.
 - **You get crit or take a big hit:** an angry uwu, an ara ara or a startled kyaa. A big hit is one that takes at least 25 % of your maximum health.
 - **Floating uwu text:** every sound pops a cute "uwu~", "owo~" or "ara ara~" over your character, like the game's crit numbers. Only you see it.
+- **Not in the mood for uwus?** Switch the sound pack to **Hitmarker**: your crits tick like a hit marker in an old shooter, with a hit marker flashing over your character, and a big hit on you cracks like a sniper rifle.
 
 All sounds are leveled to the same loudness.
 
@@ -20,6 +21,7 @@ All sounds are leveled to the same loudness.
 Open **Esc > Options > AddOns > Forever UwU**, or type `/uwu`.
 
 - **Volume** with a **Play uwu** test button. Sounds play on the Master channel.
+- **Sound pack:** UwU or Hitmarker.
 - Crit uwus, small uwus, angry uwus and the floating text can each be switched off.
 - Position of the floating text. Your character stands in the middle of the screen, so it sits at an offset from there.
 - Cooldowns for full and angry uwus, and the big-hit threshold.

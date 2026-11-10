@@ -10,6 +10,10 @@ Clips cut from YouTube: Hannah OwO, Pokimane, Ironmouse, Gawr Gura, Kobo Kanaeru
 "40 VTubers saying Ara Ara", Love Live! (Nico Nico Nii), Steins;Gate (Tuturu), Non Non Biyori (Nyanpasu),
 Demon Slayer (Shinobu), Kaguya-sama (Chika) and uwu / ara ara meme compilations.
 
+The Hitmarker sound pack uses the hit marker tick and the Intervention sniper shot from Call of Duty: Modern Warfare 2
+(Activision / Infinity Ward), as shared on myinstants.com. The same applies: all rights stay with their owners, and
+the clips are removed on request.
+
 ## Font
 
 The floating text uses [Mochiy Pop One](https://github.com/fontdasu/Mochiypop) by the Mochiypop Project Authors,

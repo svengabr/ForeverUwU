@@ -1,7 +1,9 @@
 """Draws the textures (textures/*.tga) for the floating uwu text over the character.
 
-  heart.tga  small heart next to crit uwus, white with a dark outline, so the
-             addon can tint it
+  heart.tga      small heart next to crit uwus, white with a dark outline, so
+                 the addon can tint it
+  hitmarker.tga  four diagonal ticks around an empty middle for the hitmarker
+                 sound pack, white with a thin dark outline, tinted the same way
 
 Usage:  python tools/build_textures.py   (needs Pillow)
 """
@@ -36,9 +38,26 @@ def heart():
     return img.resize((64, 64), Image.LANCZOS)
 
 
+def hitmarker():
+    s = 64 * SS
+    img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    # Each tick runs from near a corner towards the middle and stops short of it.
+    outer, inner = 0.14, 0.36
+    for width, color in ((7 * SS, (0, 0, 0, 200)), (4 * SS, (255, 255, 255, 255))):
+        for dx, dy in ((0, 0), (1, 0), (0, 1), (1, 1)):
+            x0 = s * (outer if dx == 0 else 1 - outer)
+            y0 = s * (outer if dy == 0 else 1 - outer)
+            x1 = s * (inner if dx == 0 else 1 - inner)
+            y1 = s * (inner if dy == 0 else 1 - inner)
+            d.line([(x0, y0), (x1, y1)], fill=color, width=width)
+    return img.resize((64, 64), Image.LANCZOS)
+
+
 if __name__ == "__main__":
     OUT.mkdir(exist_ok=True)
     for old in ("bubble.tga", "tail.tga", "glow.tga"):
         (OUT / old).unlink(missing_ok=True)
     heart().save(OUT / "heart.tga")
+    hitmarker().save(OUT / "hitmarker.tga")
     print("textures written to", OUT)

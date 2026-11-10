@@ -4,6 +4,7 @@ local _, ns = ...;
 ns.soundLists = ns.soundLists or {};
 ns.soundLists[#ns.soundLists + 1] = {
 	set = "public",
+	pack = "uwu",
 	crit = {
 		"Interface\\AddOns\\ForeverUwU\\sounds\\%d\\crit\\cute-uwu-73482.ogg",
 		"Interface\\AddOns\\ForeverUwU\\sounds\\%d\\crit\\girl-uwu-43540.ogg",
@@ -89,5 +90,19 @@ ns.soundLists[#ns.soundLists + 1] = {
 		"Interface\\AddOns\\ForeverUwU\\sounds\\%d\\small\\uwu-uDSRfi3PdiQ_18.ogg",
 		"Interface\\AddOns\\ForeverUwU\\sounds\\%d\\small\\uwu-vsLT6h96HmA_01.ogg",
 		"Interface\\AddOns\\ForeverUwU\\sounds\\%d\\small\\uwu-vvDVZA_Ui24_25.ogg",
+	},
+};
+ns.soundLists[#ns.soundLists + 1] = {
+	set = "public",
+	pack = "hitmarker",
+	crit = {
+		"Interface\\AddOns\\ForeverUwU\\sounds\\hitmarker\\%d\\crit\\hitmarker_2.ogg",
+	},
+	hurt = {
+		"Interface\\AddOns\\ForeverUwU\\sounds\\hitmarker\\%d\\hurt\\intervention-sound-mw2.ogg",
+		"Interface\\AddOns\\ForeverUwU\\sounds\\hitmarker\\%d\\hurt\\mlg-sound-effect-intervention-mw2.ogg",
+	},
+	small = {
+		"Interface\\AddOns\\ForeverUwU\\sounds\\hitmarker\\%d\\small\\hitmarker_2.ogg",
 	},
 };
