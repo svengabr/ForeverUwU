@@ -73,7 +73,8 @@ No sexually explicit sounds in the public set (CurseForge content rules).
   `forever`).
 - Commit messages follow Conventional Commits (`feat:`, `fix:`, `chore:` …).
 - The README is also the **CurseForge project description**. CurseForge can't take it over via API; after README
-  changes, remind the maintainer to paste it there by hand.
+  changes, remind the maintainer to paste it there by hand. Leave out the title, the logo and the gallery images
+  there: the CurseForge page already shows them above the description.
 
 ## Checks
 
