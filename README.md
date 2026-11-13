@@ -14,7 +14,7 @@ Not in the mood for uwus? Pick the **Hitmarker** sound pack. Your crits then tic
 
 ## Options
 
-Type `/uwu`, or open **Esc > Options > AddOns > Forever UwU**. You can set the volume, pick the sound pack, switch each kind of uwu and the floating text off, and move the text. `/uwu sounds` lets you listen to every clip.
+Type `/uwu`, or open **Esc > Options > AddOns > Forever UwU**. You can set the volume, pick the sound pack, switch each kind of uwu and the floating text off, and move the text. `/uwu sounds` lets you listen to every clip and switch off the ones you don't like.
 
 ![Options](https://raw.githubusercontent.com/svengabr/ForeverUwU/main/media/gallery/03-options.jpg)
 

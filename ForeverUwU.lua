@@ -52,7 +52,8 @@ local function HasSounds(pack)
 end
 
 -- Shuffle bag per pool: every clip plays once before any clip repeats,
--- and the last clip of a round never opens the next one.
+-- and the last clip of a round never opens the next one. Clips switched off
+-- on the Sounds page (db.muted, keyed by path) stay out of the bag.
 local bags = {};
 
 local function Pool(kind)
@@ -60,7 +61,9 @@ local function Pool(kind)
 	for _, list in ipairs(ns.soundLists or {}) do
 		if (list.pack or DEFAULT_PACK) == db.pack then
 			for _, path in ipairs(list[kind] or {}) do
-				pool[#pool + 1] = path;
+				if not db.muted[path] then
+					pool[#pool + 1] = path;
+				end
 			end
 		end
 	end
@@ -401,166 +404,42 @@ end
 
 local frame = CreateFrame("Frame");
 
-local function RegisterOptions()
-	local category = Settings.RegisterVerticalLayoutCategory("Forever UwU");
+-- What Options.lua needs.
+ns.DEFAULTS = DEFAULTS;
+ns.PACKS = PACKS;
+ns.VOLUME_STEP = VOLUME_STEP;
+ns.HasSounds = HasSounds;
+ns.Play = Play;
+ns.PlayPath = PlayPath;
 
-	local function Checkbox(key, label, tooltip)
-		local setting = Settings.RegisterAddOnSetting(category, "FOREVER_UWU_" .. strupper(key), key,
-			db, Settings.VarType.Boolean, label, DEFAULTS[key]);
-		Settings.CreateCheckbox(category, setting, tooltip);
-		return setting;
-	end
-
-	local function Slider(key, label, tooltip, minValue, maxValue, step, format)
-		local setting = Settings.RegisterAddOnSetting(category, "FOREVER_UWU_" .. strupper(key), key,
-			db, Settings.VarType.Number, label, DEFAULTS[key]);
-		local options = Settings.CreateSliderOptions(minValue, maxValue, step);
-		options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right, function(value)
-			return format:format(value);
-		end);
-		Settings.CreateSlider(category, setting, options, tooltip);
-	end
-
-	local enabled = Checkbox("enabled", "Enable Forever UwU", "Switches all sounds on or off.");
-	enabled:SetValueChangedCallback(function()
-		UpdateEvents(frame);
-	end);
-	Slider("volume", "Volume",
-		"Volume of the uwus, on top of the game's master volume. The clips are already leveled so none is much louder than the others.",
-		VOLUME_STEP, 100, VOLUME_STEP, "%d %%");
-	-- Only worth a dropdown when a second pack is installed.
-	local installed = {};
-	for _, pack in ipairs(PACKS) do
-		if HasSounds(pack.id) then
-			installed[#installed + 1] = pack;
-		end
-	end
-	if #installed > 1 then
-		local setting = Settings.RegisterAddOnSetting(category, "FOREVER_UWU_PACK", "pack",
-			db, Settings.VarType.String, "Sound pack", DEFAULTS.pack);
-		setting:SetValueChangedCallback(function()
-			-- The bags still hold clips of the old pack.
-			bags = {};
-		end);
-		Settings.CreateDropdown(category, setting, function()
-			local container = Settings.CreateControlTextContainer();
-			for _, pack in ipairs(installed) do
-				container:Add(pack.id, pack.label);
-			end
-			return container:GetData();
-		end, "Which sounds play: anime uwus, or the hit marker tick of old shooters. "
-			.. "The floating text changes with it.");
-	end
-	-- No search tags (last argument false): added from addon code, the tag table
-	-- is tainted, and Blizzard's options search reads it for every keystroke, so
-	-- unrelated protected settings (Discord display name) got blocked.
-	if CreateSettingsButtonInitializer then
-		Settings.RegisterInitializer(category, CreateSettingsButtonInitializer("Test sound", "Play uwu", function()
-			Play("crit");
-		end, "Plays one uwu at the volume above.", false));
-	end
-
-	Checkbox("bubbles", "Floating uwu text",
-		"Shows a floating uwu over your character with every sound. Only you see it.");
-	Slider("bubbleX", "Text position: sideways",
-		"Distance of the text from the middle of the screen, where your character stands. Use the test button to check.",
-		-600, 600, 10, "%d");
-	Slider("bubbleY", "Text position: height",
-		"Height of the text above the middle of the screen. Use the test button to check.", -400, 500, 10, "%d");
-
-	Checkbox("crit", "UwU on my crits", "Plays a random uwu when you land a critical hit or heal.");
-	Checkbox("small", "Small uwus in between",
-		"When crits come faster than the cooldown below, plays short quiet uwus instead of nothing.");
-	Slider("critCooldown", "Seconds between full uwus",
-		"A full uwu plays at most this often; crits in between get a small uwu.", 0, 5, 0.25, "%.2f s");
-	Checkbox("hurt", "Angry uwu when I get hit hard",
-		"Plays an angry uwu or an ara ara when you take a critical hit or a big hit.");
-	Slider("hurtPercent", "Big hit threshold",
-		"A single hit that takes at least this share of your maximum health counts as big.", 5, 100, 5, "%d %%");
-	Slider("hurtCooldown", "Seconds between angry uwus", "An angry uwu plays at most this often.", 0, 10, 0.5, "%.1f s");
-
-	return category;
+function ns.UpdateEvents()
+	UpdateEvents(frame);
 end
 
--- A page under the options with one button per clip, to hear each of them.
-local BOARD_POOLS = {
-	{ kind = "crit", title = "UwU on crits" },
-	{ kind = "small", title = "Small uwus" },
-	{ kind = "hurt", title = "Angry uwus" },
-};
-local BOARD_COLUMNS = 3;
-local BOARD_BUTTON_WIDTH, BOARD_BUTTON_HEIGHT = 190, 22;
-
--- "sounds\%d\crit\cute-uwu-73482.ogg" -> "cute uwu"
-local function ClipName(path)
-	local name = path:match("([^\\]+)%.ogg$") or path;
-	return (name:gsub("%-%d+$", ""):gsub("%-", " "));
+function ns.SetPack(pack)
+	db.pack = pack;
+	-- The bags still hold clips of the old pack.
+	bags = {};
 end
 
-local function RegisterSoundBoard(parent)
-	local panel = CreateFrame("Frame");
-
-	local title = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightHuge");
-	title:SetPoint("TOPLEFT", 7, -22);
-	title:SetText("Sounds");
-
-	local scroll = CreateFrame("ScrollFrame", nil, panel, "UIPanelScrollFrameTemplate");
-	scroll:SetPoint("TOPLEFT", 0, -56);
-	scroll:SetPoint("BOTTOMRIGHT", -28, 8);
-	local content = CreateFrame("Frame", nil, scroll);
-	content:SetSize(BOARD_COLUMNS * (BOARD_BUTTON_WIDTH + 6), 1);
-	scroll:SetScrollChild(content);
-
-	local y = 0;
-	local sections = {};
-	for _, pack in ipairs(PACKS) do
-		for _, pool in ipairs(BOARD_POOLS) do
-			sections[#sections + 1] = {
-				pack = pack.id,
-				kind = pool.kind,
-				title = pack.id == DEFAULT_PACK and pool.title or (pack.label .. ": " .. pool.kind),
-			};
-		end
-	end
-	for _, pool in ipairs(sections) do
-		local clips = {};
-		for _, list in ipairs(ns.soundLists or {}) do
-			if (list.pack or DEFAULT_PACK) == pool.pack then
-				for _, path in ipairs(list[pool.kind] or {}) do
-					clips[#clips + 1] = { path = path, set = list.set };
-				end
+-- Every clip of a pool in the chosen pack: { path, set }.
+function ns.Clips(kind)
+	local clips = {};
+	for _, list in ipairs(ns.soundLists or {}) do
+		if (list.pack or DEFAULT_PACK) == db.pack then
+			for _, path in ipairs(list[kind] or {}) do
+				clips[#clips + 1] = { path = path, set = list.set };
 			end
 		end
-		if #clips > 0 then
-			local header = content:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge");
-			header:SetPoint("TOPLEFT", 10, -y);
-			header:SetText(("%s (%d)"):format(pool.title, #clips));
-			y = y + 26;
-			for i, clip in ipairs(clips) do
-				local column = (i - 1) % BOARD_COLUMNS;
-				local row = math.floor((i - 1) / BOARD_COLUMNS);
-				local button = CreateFrame("Button", nil, content, "UIPanelButtonTemplate");
-				button:SetSize(BOARD_BUTTON_WIDTH, BOARD_BUTTON_HEIGHT);
-				button:SetPoint("TOPLEFT", 10 + column * (BOARD_BUTTON_WIDTH + 6), -(y + row * (BOARD_BUTTON_HEIGHT + 4)));
-				local label = ClipName(clip.path);
-				if clip.set ~= "public" then
-					label = label .. " (" .. clip.set .. ")";
-				end
-				button:SetText(label);
-				local kind, path, pack = pool.kind, clip.path, pool.pack;
-				button:SetScript("OnClick", function()
-					PlayPath(kind, path, pack);
-				end);
-			end
-			y = y + math.ceil(#clips / BOARD_COLUMNS) * (BOARD_BUTTON_HEIGHT + 4) + 16;
-		end
 	end
-	content:SetHeight(math.max(y, 1));
-
-	return Settings.RegisterCanvasLayoutSubcategory(parent, panel, "Sounds");
+	return clips;
 end
 
-local category, soundBoard;
+function ns.SetMuted(kind, path, muted)
+	db.muted[path] = muted or nil;
+	-- The current round may still hold the clip, or lack it.
+	bags[kind] = nil;
+end
 
 SLASH_FOREVERUWU1 = "/uwu";
 SlashCmdList.FOREVERUWU = function(msg)
@@ -570,12 +449,12 @@ SlashCmdList.FOREVERUWU = function(msg)
 		print("|cffff80c0Forever UwU|r: debug " .. (debugMode and "on" or "off"));
 	elseif msg == "crit" or msg == "hurt" or msg == "small" then
 		if not Play(msg) then
-			print("|cffff80c0Forever UwU|r: no " .. msg .. " sounds installed.");
+			print("|cffff80c0Forever UwU|r: no " .. msg .. " sounds installed, or all of them are off under /uwu sounds.");
 		end
-	elseif msg == "sounds" and soundBoard then
-		Settings.OpenToCategory(soundBoard:GetID());
-	elseif category then
-		Settings.OpenToCategory(category:GetID());
+	elseif msg == "sounds" then
+		ns.ToggleOptions("sounds");
+	else
+		ns.ToggleOptions();
 	end
 end;
 
@@ -608,6 +487,8 @@ frame:SetScript("OnEvent", function(self, event, arg1, ...)
 					db[key] = value;
 				end
 			end
+			-- A table can't live in DEFAULTS: the copy would share it.
+			db.muted = db.muted or {};
 			-- Only the rendered levels exist as files.
 			db.volume = math.min(100, math.max(VOLUME_STEP,
 				math.floor(db.volume / VOLUME_STEP + 0.5) * VOLUME_STEP));
@@ -615,9 +496,8 @@ frame:SetScript("OnEvent", function(self, event, arg1, ...)
 			if not HasSounds(db.pack) then
 				db.pack = DEFAULT_PACK;
 			end
-			category = RegisterOptions();
-			soundBoard = RegisterSoundBoard(category);
-			Settings.RegisterAddOnCategory(category);
+			ns.db = db;
+			ns.RegisterOptionsStub();
 		end
 	elseif event == "PLAYER_LOGIN" then
 		UpdateEvents(self);

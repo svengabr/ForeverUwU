@@ -33,9 +33,11 @@ Other players' crits on the player's own mobs inside such a window still count; 
   `textures/heart.tga` comes from `python tools/build_textures.py`. A font or texture path that doesn't exist is a
   Lua error in the client, not a silent fallback. Values from `UnitHealth` of other units are secret in combat
   and must not be compared.
-- **Options:** Esc > Options > AddOns > Forever UwU, SavedVariable `ForeverUwUDB`. `/uwu` opens them,
-  `/uwu crit|small|hurt` plays a test sound. A canvas subcategory **Sounds**
-  (`/uwu sounds`) lists every clip of every pool as a button. Sounds play on the Master channel.
+- **Options:** a window of its own in `Options.lua` (`ns.ToggleOptions`, `/uwu`), tabs **General** and
+  **Sounds** (`/uwu sounds`: every clip of the chosen pack and pool with a checkbox to switch it off and a button
+  to hear it; `db.muted`, keyed by sound path, muted clips stay out of the shuffle bag). Esc > Options > AddOns >
+  Forever UwU only holds a button that opens the window. SavedVariable `ForeverUwUDB`;
+  `/uwu crit|small|hurt` plays a test sound. Sounds play on the Master channel.
 
 ## Sounds
 

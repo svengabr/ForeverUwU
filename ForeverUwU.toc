@@ -19,3 +19,4 @@ SoundsLocal.lua
 #@end-do-not-package@
 Bubble.lua
 ForeverUwU.lua
+Options.lua

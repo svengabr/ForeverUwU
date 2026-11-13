@@ -11,13 +11,21 @@ globals = {
 }
 
 read_globals = {
+  "BackdropTemplateMixin",
+  "ButtonFrameTemplate_HideButtonBar",
+  "ButtonFrameTemplate_HidePortrait",
   "C_Timer",
-  "CreateSettingsButtonInitializer",
   "CreateFrame",
+  "GameTooltip",
+  "GameTooltip_Hide",
   "GetTime",
   "issecretvalue",
-  "MinimalSliderWithSteppersMixin",
+  "PanelTemplates_DeselectTab",
+  "PanelTemplates_SelectTab",
+  "PanelTemplates_TabResize",
   "PlaySoundFile",
+  "tinsert",
+  "UISpecialFrames",
   "Settings",
   "UIParent",
   "UnitCanAttack",
