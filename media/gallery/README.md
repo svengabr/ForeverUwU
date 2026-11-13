@@ -1,7 +1,8 @@
 # Gallery images
 
 Source for the CurseForge gallery: one HTML page per image (1920×1080), shared look in `style.css`
-(same frame as ForeverLootSparkles and ForeverMinimapTarget). Everything is drawn in HTML/CSS plus `../logo.png`.
+(same frame as ForeverLootSparkles and ForeverMinimapTarget). Everything is drawn in HTML/CSS plus `../logo.png`, except `03-options.html`, which shows in-game
+screenshots of the options window from `shots/`.
 
 Render all pages to JPG (or a single one with `sh render.sh 02-hurt.html`):
 
