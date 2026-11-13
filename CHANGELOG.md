@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+- Many more cute sounds: crits now pick from 75 clips instead of 26 (more uwus, owos, nyans, giggles, "senpai!" and "onii-chan~"), and big hits from 39 instead of 28 (more kyaas, gasps and an unamused "really?").
+
 ## 1.2.0
 
 - New sound pack **Hitmarker**, to pick under Options > AddOns > Forever UwU > Sound pack: your crits play the hit marker tick of old shooters and flash a hit marker over your character instead of the uwu text; a crit or big hit on you plays a sniper shot and flashes the hit marker in red. The uwus stay the default.
