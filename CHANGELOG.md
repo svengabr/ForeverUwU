@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0
+
+- New options window of its own: type `/uwu`. The **General** tab holds the switches, volume, cooldowns and the floating text; Esc > Options > AddOns > Forever UwU now only opens it.
+- Pick your own uwus: the **Sounds** tab (`/uwu sounds`) lists every clip with a checkbox. Untick the ones you don't like and they never play; "All on" / "All off" for each kind of sound.
+- The clips added in 1.2.1 got proper names.
+
 ## 1.2.1
 
 - Many more cute sounds: crits now pick from 75 clips instead of 26 (more uwus, owos, nyans, giggles, "senpai!" and "onii-chan~"), and big hits from 39 instead of 28 (more kyaas, gasps and an unamused "really?").
