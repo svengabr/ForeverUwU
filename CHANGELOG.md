@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.4.0
 
 - Crit heals are now opt-in: switch on **Also on my crit heals** under `/uwu`. Off by default.
 - New options **Off in a party** and **Off in a raid**: no uwus while you are in a group, where other players' crits sometimes slip through. Both off by default.
