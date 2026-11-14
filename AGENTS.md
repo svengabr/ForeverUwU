@@ -4,7 +4,8 @@ Notes for AI agents (Claude Code, Codex, Cursor …) working on ForeverUwU.
 
 ## What the addon does
 
-WoW addon that plays a random anime "uwu" when the player lands a critical hit or heal, and an angry uwu /
+WoW addon that plays a random anime "uwu" when the player lands a critical hit (crit heals only with the opt-in
+`critHeal`, default off), and an angry uwu /
 "ara ara" when the player takes a critical hit or a single hit of at least `hurtPercent` (default 25 %) of their
 maximum health. Everything lives in `ForeverUwU.lua`.
 
@@ -37,7 +38,10 @@ Other players' crits on the player's own mobs inside such a window still count; 
   **Sounds** (`/uwu sounds`: every clip of the chosen pack and pool with a checkbox to switch it off and a button
   to hear it; `db.muted`, keyed by sound path, muted clips stay out of the shuffle bag). Esc > Options > AddOns >
   Forever UwU only holds a button that opens the window. SavedVariable `ForeverUwUDB`;
-  `/uwu crit|small|hurt` plays a test sound. Sounds play on the Master channel.
+  `/uwu crit|small|hurt` plays a test sound. `offInParty` / `offInRaid` (default off) silence crit and hurt sounds
+  in a group (`IsInGroup` / `IsInRaid`); test sounds still play. The General tab shows a mascot (`textures/girl.tga`, 256×512, from
+  `media/girl.svg` via `python tools/build_girl.py`, needs Chrome/Edge + Pillow) right of the controls; headings
+  there stop at x 484 so their rules don't cross her. Sounds play on the Master channel.
 
 ## Sounds
 

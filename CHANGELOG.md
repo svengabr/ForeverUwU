@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Crit heals are now opt-in: switch on **Also on my crit heals** under `/uwu`. Off by default.
+- New options **Off in a party** and **Off in a raid**: no uwus while you are in a group, where other players' crits sometimes slip through. Both off by default.
+- A cute cat-ear girl with a heart now keeps you company in the options window.
+
 ## 1.3.0
 
 - New options window of its own: type `/uwu`. The **General** tab holds the switches, volume, cooldowns and the floating text; Esc > Options > AddOns > Forever UwU now only opens it.

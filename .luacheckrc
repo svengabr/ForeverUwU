@@ -19,6 +19,8 @@ read_globals = {
   "GameTooltip",
   "GameTooltip_Hide",
   "GetTime",
+  "IsInGroup",
+  "IsInRaid",
   "issecretvalue",
   "PanelTemplates_DeselectTab",
   "PanelTemplates_SelectTab",

@@ -24,7 +24,7 @@ WoW: Forever doesn't let addons read the combat log, so the addon has to guess c
 
 - Crits on mobs other than your target only count with enemy nameplates on (default key V).
 - Crits from damage over time and from your pet stay silent.
-- Now and then another player's crit slips through.
+- Now and then another player's crit slips through. If that bothers you in groups, tick **Off in a party** or **Off in a raid** under `/uwu`.
 
 ## Credits
 

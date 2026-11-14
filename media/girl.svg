@@ -1,0 +1,66 @@
+<!-- Options window mascot: original chibi cat-ear girl with an uwu face, holding a heart. Text uses fonts/MochiyPopOne-Regular.ttf. Rendered to textures/girl.tga by tools/build_girl.py. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512" width="256" height="512">
+<style>@font-face { font-family: "Mochiy"; src: url("../fonts/MochiyPopOne-Regular.ttf"); }</style>
+<defs>
+  <linearGradient id="pink" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc2e2"/><stop offset="1" stop-color="#ff5fa8"/></linearGradient>
+  <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffa6d4"/><stop offset="1" stop-color="#f06aae"/></linearGradient>
+  <linearGradient id="heart" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff7fb4"/><stop offset="1" stop-color="#e8306f"/></linearGradient>
+  <linearGradient id="dress" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a6f86"/><stop offset="1" stop-color="#173f50"/></linearGradient>
+  <path id="h" d="M0,14 C0,14 -14,5 -14,-3 C-14,-8 -10,-11 -6,-11 C-3,-11 -1,-9 0,-7 C1,-9 3,-11 6,-11 C10,-11 14,-8 14,-3 C14,5 0,14 0,14 Z"/>
+  <path id="spark" d="M0,-9 Q1,-1 9,0 Q1,1 0,9 Q-1,1 -9,0 Q-1,-1 0,-9 Z"/>
+</defs>
+<g stroke="#3a0820" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+
+  <!-- floating uwu~ and hearts -->
+  <text x="120" y="118" text-anchor="middle" font-family="Mochiy" font-size="56" letter-spacing="-2" fill="url(#pink)" stroke-width="9" paint-order="stroke" transform="rotate(-8 120 100)">uwu~</text>
+  <use href="#h" transform="translate(214 58) rotate(14) scale(1.7)" fill="url(#heart)" stroke-width="2.4"/>
+  <use href="#h" transform="translate(34 160) rotate(-16) scale(1.05)" fill="#ff8fc8" stroke-width="3"/>
+  <use href="#h" transform="translate(226 176) rotate(10) scale(0.85)" fill="#ff8fc8" stroke-width="3.5"/>
+  <use href="#spark" transform="translate(30 48)" fill="#fff4fb" stroke-width="2.5"/>
+  <use href="#spark" transform="translate(196 132) scale(.7)" fill="#fff4fb" stroke-width="3"/>
+
+  <!-- twin tails -->
+  <path d="M68 228 C14 262 4 372 36 482 C52 440 64 372 86 298 Z" fill="url(#hair)"/>
+  <path d="M188 228 C242 262 252 372 220 482 C204 440 192 372 170 298 Z" fill="url(#hair)"/>
+
+  <!-- cat ears -->
+  <path d="M58 226 L66 146 L116 196 Z" fill="url(#hair)"/>
+  <path d="M198 226 L190 146 L140 196 Z" fill="url(#hair)"/>
+  <path d="M70 206 L74 168 L100 194 Z" fill="#ffd0e6" stroke="none"/>
+  <path d="M186 206 L182 168 L156 194 Z" fill="#ffd0e6" stroke="none"/>
+
+  <!-- back hair -->
+  <path d="M42 286 Q38 182 128 180 Q218 182 214 286 L208 356 Q190 340 182 304 L74 304 Q66 340 48 356 Z" fill="url(#hair)"/>
+
+  <!-- body: sailor dress -->
+  <path d="M54 512 L62 392 Q70 362 128 356 Q186 362 194 392 L202 512 Z" fill="url(#dress)"/>
+  <path d="M84 366 Q128 356 172 366 L128 418 Z" fill="#f6f0ff"/>
+  <path d="M128 394 L108 382 L108 406 Z M128 394 L148 382 L148 406 Z" fill="#ff5fa2" stroke-width="3"/>
+  <circle cx="128" cy="394" r="5" fill="#ff5fa2" stroke-width="3"/>
+
+  <!-- neck and head -->
+  <rect x="114" y="326" width="28" height="34" fill="#ffe4d6"/>
+  <ellipse cx="128" cy="276" rx="74" ry="68" fill="#ffe4d6"/>
+
+  <!-- bangs -->
+  <path d="M50 270 Q54 192 128 190 Q202 192 206 270 Q198 248 186 232 Q184 250 172 260 Q168 236 156 222 Q152 242 142 252 Q136 230 128 216 Q120 230 114 252 Q104 242 100 222 Q88 236 84 260 Q72 250 70 232 Q58 248 50 270 Z" fill="url(#hair)"/>
+  <path d="M96 204 Q112 196 132 198" fill="none" stroke="#ffe3f1" stroke-width="5"/>
+
+  <!-- hair bows -->
+  <path d="M64 236 L44 222 L46 252 Z M64 236 L84 222 L82 252 Z" fill="#ff5fa2" stroke-width="3"/>
+  <path d="M192 236 L172 222 L174 252 Z M192 236 L212 222 L210 252 Z" fill="#ff5fa2" stroke-width="3"/>
+
+  <!-- uwu face -->
+  <ellipse cx="86" cy="300" rx="13" ry="7" fill="#ff8fb8" stroke="none" opacity=".85"/>
+  <ellipse cx="170" cy="300" rx="13" ry="7" fill="#ff8fb8" stroke="none" opacity=".85"/>
+  <path d="M86 270 Q99 298 112 270" fill="none" stroke-width="5.5"/>
+  <path d="M144 270 Q157 298 170 270" fill="none" stroke-width="5.5"/>
+  <path d="M116 304 Q122 314 128 305 Q134 314 140 304" fill="none" stroke-width="3.5"/>
+
+  <!-- heart held in both hands -->
+  <path d="M128 488 C128 488 68 448 68 412 C68 390 86 376 104 376 C116 376 124 384 128 393 C132 384 140 376 152 376 C170 376 188 390 188 412 C188 448 128 488 128 488 Z" fill="url(#heart)"/>
+  <ellipse cx="98" cy="402" rx="11" ry="7" fill="#ffd3e6" stroke="none" transform="rotate(-30 98 402)"/>
+  <circle cx="72" cy="438" r="14" fill="#ffe4d6"/>
+  <circle cx="184" cy="438" r="14" fill="#ffe4d6"/>
+</g>
+</svg>

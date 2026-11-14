@@ -6,7 +6,8 @@
 
 local _, ns = ...;
 
-local WIDTH, HEIGHT = 520, 640;
+-- Wide enough for the mascot to the right of the General tab's controls.
+local WIDTH, HEIGHT = 680, 696;
 local ROW = 24;
 local GOLD = { 1, 0.82, 0 };
 
@@ -52,7 +53,12 @@ local function Heading(parent, text, y)
 	rule:SetColorTexture(GOLD[1], GOLD[2], GOLD[3], 0.25);
 	rule:SetHeight(1);
 	rule:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -3);
-	rule:SetPoint("RIGHT", parent, "RIGHT", -4, 0);
+	if parent.ruleEnd then
+		-- Stops short of the mascot.
+		rule:SetPoint("RIGHT", parent, "LEFT", parent.ruleEnd, 0);
+	else
+		rule:SetPoint("RIGHT", parent, "RIGHT", -4, 0);
+	end
 	return y - 26;
 end
 
@@ -121,7 +127,19 @@ end
 
 -- General ------------------------------------------------------------------
 
+-- The mascot in the free space right of the controls (media/girl.svg,
+-- rendered by tools/build_girl.py). Standing still: a bobbing translation
+-- stutters, it snaps to whole pixels.
+local function Mascot(panel)
+	local girl = panel:CreateTexture(nil, "ARTWORK");
+	girl:SetSize(160, 320);
+	girl:SetPoint("BOTTOMRIGHT", -2, -6);
+	girl:SetTexture("Interface\\AddOns\\ForeverUwU\\textures\\girl");
+end
+
 local function BuildGeneral(panel)
+	Mascot(panel);
+	panel.ruleEnd = 484;
 	local controls = {};
 	local function Add(control, y)
 		controls[#controls + 1] = control;
@@ -130,6 +148,14 @@ local function BuildGeneral(panel)
 	local y = -4;
 	y = Heading(panel, "Forever UwU", y);
 	y = Add(Check(panel, "enabled", "Enable Forever UwU", "Switches all sounds on or off.", y, ns.UpdateEvents));
+	-- Party and raid share one row.
+	local inParty, nextY = Check(panel, "offInParty", "Off in a party",
+		"No uwus while you are in a party. In a group, other players' crits sometimes play an uwu.", y);
+	local inRaid = Check(panel, "offInRaid", "Off in a raid", "No uwus while you are in a raid.", y);
+	inRaid:ClearAllPoints();
+	inRaid:SetPoint("TOPLEFT", 230, y);
+	Add(inParty);
+	y = Add(inRaid, nextY);
 	y = Add(Slider(panel, "volume", "Volume",
 		"Volume of the uwus, on top of the game's master volume. The clips are already leveled so none is much louder than the others.",
 		ns.VOLUME_STEP, 100, ns.VOLUME_STEP, "%d %%", y));
@@ -179,7 +205,9 @@ local function BuildGeneral(panel)
 	y = y - ROW - 14;
 
 	y = Heading(panel, "When you crit", y);
-	y = Add(Check(panel, "crit", "UwU on my crits", "Plays a random uwu when you land a critical hit or heal.", y));
+	y = Add(Check(panel, "crit", "UwU on my crits", "Plays a random uwu when you land a critical hit.", y));
+	y = Add(Check(panel, "critHeal", "Also on my crit heals",
+		"Plays an uwu when one of your heals crits on you or your target. Needs \"UwU on my crits\".", y));
 	y = Add(Check(panel, "small", "Small uwus in between",
 		"When crits come faster than the cooldown below, plays short quiet uwus instead of nothing.", y));
 	y = Add(Slider(panel, "critCooldown", "Seconds between full uwus",

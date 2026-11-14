@@ -9,6 +9,11 @@ local ADDON_NAME, ns = ...;
 local DEFAULTS = {
 	enabled = true,
 	crit = true,
+	-- Crit heals are opt-in.
+	critHeal = false,
+	-- Other players' crits slip through more often in groups.
+	offInParty = false,
+	offInRaid = false,
 	hurt = true,
 	small = true,
 	critCooldown = 1.5,
@@ -109,8 +114,17 @@ local function Play(kind)
 	return PlayPath(kind, NextSound(kind));
 end
 
+-- Silent in a party or raid when the options say so. The test buttons and
+-- /uwu crit|small|hurt still play.
+local function Silenced()
+	if IsInRaid() then
+		return db.offInRaid;
+	end
+	return IsInGroup() and db.offInParty;
+end
+
 local function OnOwnCrit()
-	if not db.crit then
+	if not db.crit or Silenced() then
 		return;
 	end
 	local now = GetTime();
@@ -125,7 +139,7 @@ local function OnOwnCrit()
 end
 
 local function OnHurt()
-	if not db.hurt then
+	if not db.hurt or Silenced() then
 		return;
 	end
 	local now = GetTime();
@@ -248,7 +262,7 @@ local function OnCombatText(textType)
 	end
 	if kind == "hurt" then
 		OnHurt();
-	elseif kind == "crit" then
+	elseif kind == "crit" and db.critHeal then
 		OnCritIfMine();
 	end
 end
@@ -333,13 +347,13 @@ local function OnUnitCombat(unit, event, flags, amount, school)
 			if critical or (amount and maxHealth > 0 and amount >= maxHealth * db.hurtPercent / 100) then
 				OnHurt();
 			end
-		elseif event == "HEAL" and critical then
+		elseif event == "HEAL" and critical and db.critHeal then
 			OnCritIfMine();
 		end
 		return;
 	end
 
-	if event ~= "WOUND" and event ~= "HEAL" then
+	if event ~= "WOUND" and (event ~= "HEAL" or not db.critHeal) then
 		return;
 	end
 	if critical then
