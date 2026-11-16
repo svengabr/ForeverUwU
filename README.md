@@ -4,9 +4,9 @@
 
 A silly little addon for **World of Warcraft: Forever**: every crit deserves an uwu.
 
-When you crit, a random anime uwu plays and a little "uwu~" pops up over your character. Only you see it. When you get crit or take a big hit, you get an angry uwu, an ara ara or a startled kyaa. If the crits come fast, the addon plays small, quiet uwus in between so it doesn't turn into a wall of noise.
+When you crit, a random anime uwu plays and a little "uwu~" pops up over your character. Only you see it. When you get crit or take a big hit, you get an angry uwu, an ara ara or a startled kyaa. Hatsune Miku drops by too. If the crits come fast, the addon plays small, quiet uwus in between so it doesn't turn into a wall of noise.
 
-Not in the mood for uwus? Pick the **Hitmarker** sound pack. Your crits then tick like a hit marker in an old shooter, and a big hit on you cracks like a sniper rifle. Or go full montage parody with the **MLG** pack: air horns, "Damn son!", "Oh baby a triple!" on your crits and "Emotional damage!" when you get hit.
+Not in the mood for uwus? Pick the **Hitmarker** sound pack. Your crits then tick like a hit marker in an old shooter, and a big hit on you cracks like a sniper rifle. Or go full montage parody with the **MLG** pack: air horns, "Damn son!", "Oh baby a triple!", "Headshot!" and "Godlike!" on your crits and "Emotional damage!" when you get hit.
 
 ![Every crit deserves an uwu](https://raw.githubusercontent.com/svengabr/ForeverUwU/main/media/gallery/01-overview.jpg)
 
@@ -15,6 +15,8 @@ Not in the mood for uwus? Pick the **Hitmarker** sound pack. Your crits then tic
 ## Options
 
 Type `/uwu`, or open **Esc > Options > AddOns > Forever UwU**. You can set the volume, pick the sound pack, switch each kind of uwu and the floating text off, and move the text. `/uwu sounds` lets you listen to every clip and switch off the ones you don't like.
+
+The addon also counts your crits: the options show this session's crits and your character's total, and you can switch on the count under the floating text ("#128") or a small crit counter on screen that you drag wherever you like. Your 100th, 1,000th, 10,000th … crit gets a cheer of its own, and dying gets a sound too. Both can be switched off.
 
 ![Options](https://raw.githubusercontent.com/svengabr/ForeverUwU/main/media/gallery/03-options.jpg)
 

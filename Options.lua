@@ -7,7 +7,7 @@
 local _, ns = ...;
 
 -- Wide enough for the mascot to the right of the General tab's controls.
-local WIDTH, HEIGHT = 680, 696;
+local WIDTH, HEIGHT = 680, 724;
 local ROW = 24;
 local GOLD = { 1, 0.82, 0 };
 
@@ -69,13 +69,29 @@ local function Check(parent, key, label, tip, y, onChange)
 	check:SetPoint("TOPLEFT", 8, y);
 	check.Label = Text(parent, "GameFontHighlight", label);
 	check.Label:SetPoint("LEFT", check, "RIGHT", 2, 0);
+	-- The label is part of the checkbox: clicking and hovering it count too.
+	check:SetHitRectInsets(0, -(check.Label:GetStringWidth() + 4), 0, 0);
 	check:SetScript("OnClick", function(self)
 		ns.db[key] = self:GetChecked() and true or false;
 		if onChange then
 			onChange();
 		end
+		if parent.preview then
+			parent.preview:Refresh();
+		end
 	end);
 	Tooltip(check, label, tip);
+	-- Hovering pops the option's part in the General tab's preview.
+	check:HookScript("OnEnter", function()
+		if parent.preview then
+			parent.preview:Highlight(key);
+		end
+	end);
+	check:HookScript("OnLeave", function()
+		if parent.preview then
+			parent.preview:Highlight(nil);
+		end
+	end);
 	function check:Refresh()
 		self:SetChecked(ns.db[key]);
 	end
@@ -137,10 +153,34 @@ local function Mascot(panel)
 	girl:SetTexture("Interface\\AddOns\\ForeverUwU\\textures\\girl");
 end
 
+local PACK_TIPS = {
+	uwu = "Anime uwus, owos and ara aras.",
+	hitmarker = "The hit marker tick of old shooters, and a sniper shot when you get hit hard.",
+	mlg = "Montage parody classics: air horns, \"Damn son!\", \"Oh baby a triple!\", and \"Emotional damage!\" when you get hit hard.",
+};
+
+StaticPopupDialogs.FOREVERUWU_RESET_CRITS = {
+	text = "Reset this character's crit count to 0?",
+	button1 = YES,
+	button2 = NO,
+	OnAccept = function()
+		ns.ResetCrits();
+	end,
+	timeout = 0,
+	whileDead = true,
+	hideOnEscape = true,
+};
+
 local function BuildGeneral(panel)
 	Mascot(panel);
 	panel.ruleEnd = 484;
-	local controls = {};
+	-- The live preview in the free space above the mascot.
+	panel.preview = ns.CreatePreview(panel);
+	panel.preview:SetPoint("TOPRIGHT", -2, -4);
+	panel:HookScript("OnHide", function()
+		panel.preview:Highlight(nil);
+	end);
+	local controls = { panel.preview };
 	local function Add(control, y)
 		controls[#controls + 1] = control;
 		return y;
@@ -179,14 +219,15 @@ local function BuildGeneral(panel)
 			end
 		end };
 		for i, pack in ipairs(installed) do
-			local button = Button(panel, pack.label, 96, function()
+			-- Narrow enough that three fit left of the preview (x 484).
+			local button = Button(panel, pack.label, 80, function()
 				ns.SetPack(pack.id);
 				group.Refresh();
+				panel.preview:Refresh();
 			end);
 			button.pack = pack.id;
-			button:SetPoint("TOPLEFT", 230 + (i - 1) * 100, y - 1);
-			Tooltip(button, pack.label, pack.id == "uwu" and "Anime uwus, owos and ara aras."
-				or "The hit marker tick of old shooters, and a sniper shot when you get hit hard.");
+			button:SetPoint("TOPLEFT", 230 + (i - 1) * 84, y - 1);
+			Tooltip(button, pack.label, PACK_TIPS[pack.id]);
 			buttons[i] = button;
 		end
 		controls[#controls + 1] = group;
@@ -205,18 +246,59 @@ local function BuildGeneral(panel)
 	y = y - ROW - 14;
 
 	y = Heading(panel, "When you crit", y);
+	-- Each of these rows holds a second switch at x 230.
+	local function Pair(left, right, below, y0)
+		right:ClearAllPoints();
+		right:SetPoint("TOPLEFT", 230, y0);
+		Add(left);
+		return Add(right, below);
+	end
 	y = Add(Check(panel, "crit", "UwU on my crits", "Plays a random uwu when you land a critical hit.", y));
-	y = Add(Check(panel, "critHeal", "Also on my crit heals",
-		"Plays an uwu when one of your heals crits on you or your target. Needs \"UwU on my crits\".", y));
+	local critHeal, afterHeal = Check(panel, "critHeal", "Also on my crit heals",
+		"Plays an uwu when one of your heals crits on you or your target. Needs \"UwU on my crits\".", y);
+	y = Pair(critHeal, Check(panel, "milestones", "Milestone cheers",
+		"Your 100th, 500th, 1,000th … crit gets a cheer and a big popup. Try /uwu milestone.", y),
+		afterHeal, y);
 	y = Add(Check(panel, "small", "Small uwus in between",
 		"When crits come faster than the cooldown below, plays short quiet uwus instead of nothing.", y));
 	y = Add(Slider(panel, "critCooldown", "Seconds between full uwus",
 		"A full uwu plays at most this often; crits in between get a small uwu.", 0, 5, 0.25, "%.2f s", y));
-	y = y - 8;
+	-- The crit count, kept up to date while the window is open.
+	local countCaption = Text(panel, "GameFontHighlight", "Crit count");
+	countCaption:SetPoint("TOPLEFT", 14, y - 4);
+	local countValue = Text(panel, "GameFontHighlight");
+	countValue:SetPoint("TOPLEFT", 230, y - 4);
+	local countLine = { Refresh = function()
+		local session, total, _, best = ns.CritCounts();
+		local text = ("%s this session, %s total"):format(ns.FormatCount(session), ns.FormatCount(total));
+		if best then
+			text = text .. (", best %s"):format(ns.FormatCount(best));
+		end
+		countValue:SetText(text);
+	end };
+	controls[#controls + 1] = countLine;
+	ns.RefreshCritCount = function()
+		if panel:IsVisible() then
+			countLine.Refresh();
+			panel.preview:Refresh();
+		end
+	end;
+	y = y - ROW;
+	local counter, afterCounter = Check(panel, "counter", "Crit counter on screen",
+		"Shows a small box with your crit count. Drag it wherever you like.", y, ns.UpdateCounter);
+	Add(counter);
+	local reset = Button(panel, "Reset count", 110, function()
+		StaticPopup_Show("FOREVERUWU_RESET_CRITS");
+	end);
+	reset:SetPoint("TOPLEFT", 230, y - 1);
+	Tooltip(reset, "Reset count", "Sets this character's crit count back to 0. Only crits the addon takes as yours count, so DoT ticks and pet hits are missing.");
+	y = afterCounter - 8;
 
 	y = Heading(panel, "When you get hit hard", y);
 	y = Add(Check(panel, "hurt", "Angry uwu when I get hit hard",
 		"Plays an angry uwu or an ara ara when you take a critical hit or a big hit.", y));
+	y = Add(Check(panel, "death", "Sound when I die",
+		"Plays a sad or dramatic clip when your character dies: \"Wasted\", \"Mission failed\" (MLG), \"that hurt, senpai!\" … Try /uwu death.", y));
 	y = Add(Slider(panel, "hurtPercent", "Big hit threshold",
 		"A single hit that takes at least this share of your maximum health counts as big. In combat the game hides hit amounts, so there only crits count.",
 		5, 100, 5, "%d %%", y));
@@ -225,8 +307,14 @@ local function BuildGeneral(panel)
 	y = y - 8;
 
 	y = Heading(panel, "Floating text", y);
-	y = Add(Check(panel, "bubbles", "Floating uwu text",
-		"Shows a floating uwu over your character with every sound. Only you see it.", y));
+	local bubbles, afterBubbles = Check(panel, "bubbles", "Floating uwu text",
+		"Shows a floating uwu over your character with every sound. Only you see it.", y);
+	local bubbleCount = Check(panel, "bubbleCount", "Crit count in the text",
+		"Shows your crit count, like #128, under the floating text of a crit.", y);
+	bubbleCount:ClearAllPoints();
+	bubbleCount:SetPoint("TOPLEFT", 230, y);
+	Add(bubbles);
+	y = Add(bubbleCount, afterBubbles);
 	y = Add(Slider(panel, "bubbleX", "Position: sideways",
 		"Distance of the text from the middle of the screen, where your character stands. Use the test buttons to check.",
 		-600, 600, 10, "%d", y));
@@ -406,6 +494,14 @@ local function Build()
 	window:SetScript("OnDragStop", window.StopMovingOrSizing);
 	-- Escape closes it.
 	tinsert(UISpecialFrames, "ForeverUwUOptions");
+	-- The template's X goes through HideUIPanel, which does nothing in combat;
+	-- this window isn't a managed panel, so a plain Hide is enough.
+	local close = window.CloseButton or _G.ForeverUwUOptionsCloseButton;
+	if close then
+		close:SetScript("OnClick", function()
+			window:Hide();
+		end);
+	end
 
 	if ButtonFrameTemplate_HidePortrait then
 		ButtonFrameTemplate_HidePortrait(window);

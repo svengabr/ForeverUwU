@@ -24,6 +24,14 @@ local DEFAULTS = {
 	bubbles = true,
 	bubbleX = 40,
 	bubbleY = 140,
+	-- The crit count under the floating text, and the counter box on screen.
+	bubbleCount = false,
+	counter = false,
+	counterX = 300,
+	counterY = -120,
+	-- Cheers at crit count milestones and a sound when the player dies.
+	milestones = true,
+	death = true,
 };
 
 -- PlaySoundFile has no volume argument, so tools/build_sounds.py renders every
@@ -47,6 +55,10 @@ local DEFAULT_PACK = PACKS[1].id;
 
 local db;
 local lastCrit, lastSmall, lastHurt = 0, 0, 0;
+local sessionCrits = 0;
+-- The biggest crit seen this session; only known when the game shows the
+-- amount (in combat it can be a secret value).
+local sessionBest;
 
 local function HasSounds(pack)
 	for _, list in ipairs(ns.soundLists or {}) do
@@ -100,9 +112,11 @@ local function NextSound(kind)
 	return path;
 end
 
-local function PlayPath(kind, path, pack)
+-- count: the crit count to show under the floating text, if any; text and
+-- scale override the clip's caption and the size of the floating text.
+local function PlayPath(kind, path, pack, count, text, scale)
 	if db.bubbles then
-		ns.ShowBubble(kind, db.bubbleX, db.bubbleY, pack or db.pack);
+		ns.ShowBubble(kind, db.bubbleX, db.bubbleY, pack or db.pack, db.bubbleCount and count or nil, path, text, scale);
 	end
 	if path then
 		PlaySoundFile(path:format(db.volume), CHANNEL);
@@ -111,8 +125,58 @@ local function PlayPath(kind, path, pack)
 	return false;
 end
 
-local function Play(kind)
-	return PlayPath(kind, NextSound(kind));
+local function Play(kind, count)
+	return PlayPath(kind, NextSound(kind), nil, count);
+end
+
+-- The clip of a pool in the chosen pack with this file name (without .ogg),
+-- unless it is switched off on the Sounds page.
+local function FindClip(kind, name)
+	for _, path in ipairs(Pool(kind)) do
+		if path:match("([^\\]+)%.ogg$") == name then
+			return path;
+		end
+	end
+end
+
+-- The first of these clips that is there and switched on.
+local function FirstClip(kind, names)
+	for _, name in ipairs(names or {}) do
+		local path = FindClip(kind, name);
+		if path then
+			return path;
+		end
+	end
+end
+
+-- Crit counts are kept per character in the account-wide saved variable.
+local function CharacterKey()
+	return (UnitName("player") or "?") .. "-" .. (GetRealmName() or "?");
+end
+
+local function CountsChanged()
+	if ns.UpdateCounter then
+		ns.UpdateCounter();
+	end
+	if ns.RefreshCritCount then
+		ns.RefreshCritCount();
+	end
+end
+
+-- Every crit taken as the player's own counts, also while its sound is off,
+-- on cooldown or silenced in a group. amount is the damage when the game
+-- shows it. Returns the character's new total.
+local function CountCrit(amount)
+	local key = CharacterKey();
+	local total = (db.critCounts[key] or 0) + 1;
+	db.critCounts[key] = total;
+	sessionCrits = sessionCrits + 1;
+	if amount and amount > 0 then
+		sessionBest = math.max(sessionBest or 0, amount);
+		db.bestCrits[key] = math.max(db.bestCrits[key] or 0, amount);
+	end
+	CountsChanged();
+	return total;
 end
 
 -- Silent in a party or raid when the options say so. The test buttons and
@@ -124,18 +188,44 @@ local function Silenced()
 	return IsInGroup() and db.offInParty;
 end
 
-local function OnOwnCrit()
+-- Crit count milestones get a cheer of their own: a fitting clip and a big
+-- "1,000 CRITS!" instead of the usual crit sound.
+local MILESTONES = { [100] = true, [500] = true, [1000] = true, [2500] = true, [5000] = true };
+local MILESTONE_STEP = 10000;
+local MILESTONE_CLIPS = {
+	uwu = { "nico-nico-nii-T4iC52d-fVY_01", "kawaiii-vvDVZA_Ui24_06" },
+	mlg = { "air-horns", "air-horn" },
+};
+local BIG = 1.4;
+
+local function IsMilestone(count)
+	return MILESTONES[count] or count % MILESTONE_STEP == 0;
+end
+
+local function PlayMilestone(count)
+	local path = FirstClip("crit", MILESTONE_CLIPS[db.pack]) or NextSound("crit");
+	return PlayPath("crit", path, nil, nil, ns.FormatCount(count) .. " CRITS!", BIG);
+end
+
+local function OnOwnCrit(amount)
+	local count = CountCrit(amount);
 	if not db.crit or Silenced() then
 		return;
 	end
 	local now = GetTime();
+	if db.milestones and IsMilestone(count) then
+		lastCrit = now;
+		lastSmall = now;
+		PlayMilestone(count);
+		return;
+	end
 	if now - lastCrit >= db.critCooldown then
 		lastCrit = now;
 		lastSmall = now;
-		Play("crit");
+		Play("crit", count);
 	elseif db.small and now - lastSmall >= SMALL_GAP then
 		lastSmall = now;
-		Play("small");
+		Play("small", count);
 	end
 end
 
@@ -149,6 +239,38 @@ local function OnHurt()
 		-- Keeps a crit uwu from talking over the hurt sound right away.
 		lastCrit = now;
 		Play("hurt");
+	end
+end
+
+-- The player died: a fitting clip of the hurt pool, after the hurt sound of
+-- the killing hit had a moment.
+local DEATH_CLIPS = {
+	uwu = { "thats-hurt-senpai", "polka-itai-306", "anime-girl-scream-17667" },
+	mlg = { "wasted", "mission-failed", "you-have-been-slain", "game-over" },
+};
+local DEATH_DELAY = 0.8;
+
+-- test: from /uwu death, plays whatever the options say.
+local function OnDeath(test)
+	if not test and (not db.death or Silenced()) then
+		return;
+	end
+	-- A random one of those that are there, so dying doesn't always sound the same.
+	local found = {};
+	for _, name in ipairs(DEATH_CLIPS[db.pack] or {}) do
+		found[#found + 1] = FindClip("hurt", name);
+	end
+	local path = found[1] and found[math.random(#found)] or NextSound("hurt");
+	local function Fire()
+		lastHurt = GetTime();
+		lastCrit = lastHurt;
+		PlayPath("hurt", path);
+	end
+	local wait = lastHurt + DEATH_DELAY - GetTime();
+	if wait > 0 then
+		C_Timer.After(wait, Fire);
+	else
+		Fire();
 	end
 end
 
@@ -218,16 +340,17 @@ local function WasMine(time, onTarget)
 		or (onTarget and time - lastSwing >= -SWING_SLACK and time - lastSwing <= SWING_WINDOW);
 end
 
-local function OnCritIfMine(time, onTarget)
+-- amount: the damage of the crit, when known (not for heals).
+local function OnCritIfMine(time, onTarget, amount)
 	time = time or GetTime();
 	if WasMine(time, onTarget) then
-		OnOwnCrit();
+		OnOwnCrit(amount);
 		return;
 	end
 	-- The cast event may arrive a moment after the hit it belongs to.
 	C_Timer.After(SWING_SLACK, function()
 		if WasMine(time, onTarget) then
-			OnOwnCrit();
+			OnOwnCrit(amount);
 		else
 			Debug(("crit ignored, not mine (%s, swing %+.2f s, cast %+.2f s)"):format(
 				onTarget and "target" or "not target", lastSwing - time, lastCast - time));
@@ -281,7 +404,7 @@ local function OnKillingBlow(how)
 	local crit = LooksLikeCrit(hit.school, hit.amount);
 	Debug("kill", hit.amount, "school " .. tostring(hit.school), how, crit and "CRIT" or "");
 	if crit then
-		OnCritIfMine(hit.time, true);
+		OnCritIfMine(hit.time, true, hit.amount);
 	end
 end
 
@@ -299,13 +422,14 @@ local function QueueCrit(onTarget, event, flags, amount)
 		pendingCrit.onTarget = pendingCrit.onTarget or onTarget;
 		return;
 	end
-	local crit = { key = key, onTarget = onTarget, time = GetTime() };
+	local crit = { key = key, onTarget = onTarget, time = GetTime(),
+		amount = event == "WOUND" and amount or nil };
 	pendingCrit = crit;
 	C_Timer.After(0, function()
 		if pendingCrit == crit then
 			pendingCrit = nil;
 		end
-		OnCritIfMine(crit.time, crit.onTarget);
+		OnCritIfMine(crit.time, crit.onTarget, crit.amount);
 	end);
 end
 
@@ -402,6 +526,7 @@ local function UpdateEvents(frame)
 		frame:RegisterEvent("COMBAT_TEXT_UPDATE");
 		frame:RegisterEvent("CHAT_MSG_COMBAT_XP_GAIN");
 		frame:RegisterEvent("PLAYER_SWING");
+		frame:RegisterEvent("PLAYER_DEAD");
 		frame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player");
 		frame:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", "player");
 		frame:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", "player");
@@ -410,6 +535,7 @@ local function UpdateEvents(frame)
 		frame:UnregisterEvent("COMBAT_TEXT_UPDATE");
 		frame:UnregisterEvent("CHAT_MSG_COMBAT_XP_GAIN");
 		frame:UnregisterEvent("PLAYER_SWING");
+		frame:UnregisterEvent("PLAYER_DEAD");
 		frame:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED");
 		frame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_START");
 		frame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_STOP");
@@ -450,6 +576,31 @@ function ns.Clips(kind)
 	return clips;
 end
 
+-- This session's and this character's total crit count, then the biggest
+-- crit of the session and of the character (nil while unknown).
+function ns.CritCounts()
+	local key = CharacterKey();
+	return sessionCrits, db.critCounts[key] or 0, sessionBest, db.bestCrits[key];
+end
+
+function ns.ResetCrits()
+	local key = CharacterKey();
+	db.critCounts[key] = nil;
+	db.bestCrits[key] = nil;
+	sessionCrits = 0;
+	sessionBest = nil;
+	CountsChanged();
+end
+
+-- 4210 -> "4,210"
+function ns.FormatCount(n)
+	local s, k = tostring(n), 1;
+	while k > 0 do
+		s, k = s:gsub("^(%d+)(%d%d%d)", "%1,%2");
+	end
+	return s;
+end
+
 function ns.SetMuted(kind, path, muted)
 	db.muted[path] = muted or nil;
 	-- The current round may still hold the clip, or lack it.
@@ -466,6 +617,10 @@ SlashCmdList.FOREVERUWU = function(msg)
 		if not Play(msg) then
 			print("|cffff80c0Forever UwU|r: no " .. msg .. " sounds installed, or all of them are off under /uwu sounds.");
 		end
+	elseif msg == "death" then
+		OnDeath(true);
+	elseif msg == "milestone" then
+		PlayMilestone(1000);
 	elseif msg == "sounds" then
 		ns.ToggleOptions("sounds");
 	else
@@ -484,6 +639,8 @@ frame:SetScript("OnEvent", function(self, event, arg1, ...)
 		OnKillingBlow("xp");
 	elseif event == "PLAYER_SWING" then
 		OnSwing(...);
+	elseif event == "PLAYER_DEAD" then
+		OnDeath();
 	elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
 		lastCast = GetTime();
 	elseif event == "UNIT_SPELLCAST_CHANNEL_START" then
@@ -504,6 +661,8 @@ frame:SetScript("OnEvent", function(self, event, arg1, ...)
 			end
 			-- A table can't live in DEFAULTS: the copy would share it.
 			db.muted = db.muted or {};
+			db.critCounts = db.critCounts or {};
+			db.bestCrits = db.bestCrits or {};
 			-- Only the rendered levels exist as files.
 			db.volume = math.min(100, math.max(VOLUME_STEP,
 				math.floor(db.volume / VOLUME_STEP + 0.5) * VOLUME_STEP));
@@ -516,5 +675,6 @@ frame:SetScript("OnEvent", function(self, event, arg1, ...)
 		end
 	elseif event == "PLAYER_LOGIN" then
 		UpdateEvents(self);
+		ns.UpdateCounter();
 	end
 end);

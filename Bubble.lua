@@ -8,12 +8,13 @@ local _, ns = ...;
 local MEDIA = "Interface\\AddOns\\ForeverUwU\\";
 -- Mochiy Pop One (SIL OFL 1.1, fonts/OFL.txt), cut down to Latin characters.
 local FONT = MEDIA .. "fonts\\MochiyPopOne-Regular.ttf";
-local FONT_SIZE = 40;
+local FONT_SIZE = 30;
 local LIFETIME = 1.7;
 local POP = 0.22;
 local FADE = 0.5;
 local RISE = 40;
 local MAX_POPUPS = 6;
+local COUNT_SIZE = 16;
 
 local TEXTS = {
 	crit = { "uwu~", "UwU", "owo~", "nya~", "uwu!", "^w^" },
@@ -42,16 +43,25 @@ local PACK_STYLES = {
 	mlg = {
 		crit = {
 			text = { 0.4, 1, 0.2 }, scale = 1, alpha = 1,
-			texts = { "WOW", "360 NO SCOPE", "OH BABY", "WOMBO COMBO", "MLG", "+100", "GET REKT", "DAMN SON" },
+			texts = { "WOW", "360 NO SCOPE", "OH BABY", "WOMBO COMBO", "MLG", "+100", "GET REKT", "DAMN SON",
+				"HEADSHOT", "TRIPLE KILL", "GODLIKE", "RAMPAGE" },
 		},
 		small = { text = { 1, 0.9, 0.2 }, scale = 0.55, alpha = 0.8, texts = { "+10", "MLG", "wow", "dank", "+1" } },
 		hurt = {
 			text = { 1, 0.25, 0.2 }, scale = 1.1, alpha = 1,
-			texts = { "REKT", "OOF", "WASTED", "BRUH", "2SAD4ME", "GG" },
+			texts = { "REKT", "OOF", "WASTED", "BRUH", "2SAD4ME", "GG", "GAME OVER", "SLAIN" },
 		},
 	},
 };
 local ICON_FADE = 0.2;
+
+-- The look of a kind in a pack, shared with the options preview.
+function ns.BubbleStyle(pack, kind)
+	return (PACK_STYLES[pack] or STYLES)[kind];
+end
+ns.BUBBLE_MEDIA = MEDIA;
+ns.BUBBLE_FONT = FONT;
+ns.BUBBLE_FONT_SIZE = FONT_SIZE;
 
 local popups = {};
 
@@ -66,24 +76,25 @@ local function PopScale(age)
 	end
 	return 1.25 - 0.25 * ((t - 0.5) / 0.5);
 end
+ns.PopScale = PopScale;
 
 local function OnUpdate(self, elapsed)
 	self.age = self.age + elapsed;
 	local age = self.age;
 	local style = self.style;
-	local lifetime = style.lifetime or LIFETIME;
+	local lifetime = self.lifetime or style.lifetime or LIFETIME;
 	if age >= lifetime then
 		self:Hide();
 		return;
 	end
-	local fadeTime = style.icon and ICON_FADE or FADE;
-	local scale = style.scale * PopScale(age);
+	local fadeTime = self.showsIcon and ICON_FADE or FADE;
+	local scale = style.scale * self.boost * PopScale(age);
 	local fade = age > lifetime - fadeTime and (lifetime - age) / fadeTime or 1;
 	self:SetScale(scale);
 	self:SetAlpha(style.alpha * math.min(1, age / 0.08) * fade);
 	-- Offsets are in the frame's own scale, so undo it to keep the spot fixed.
 	self:ClearAllPoints();
-	self:SetPoint("CENTER", UIParent, "CENTER", self.x / scale, (self.y + (style.rise or RISE) * age / lifetime) / scale);
+	self:SetPoint("CENTER", UIParent, "CENTER", self.x / scale, (self.y + (self.lifetime and RISE or style.rise or RISE) * age / lifetime) / scale);
 end
 
 local function CreatePopup()
@@ -96,17 +107,22 @@ local function CreatePopup()
 	f.text = f:CreateFontString(nil, "OVERLAY");
 	f.text:SetFont(FONT, FONT_SIZE, "THICKOUTLINE");
 	f.text:SetShadowColor(0.23, 0.03, 0.13, 1);
-	f.text:SetShadowOffset(0, -3);
+	f.text:SetShadowOffset(0, -2);
 	f.text:SetPoint("CENTER");
 
 	f.heart = f:CreateTexture(nil, "OVERLAY");
 	f.heart:SetTexture(MEDIA .. "textures\\heart");
-	f.heart:SetSize(30, 30);
-	f.heart:SetPoint("LEFT", f.text, "RIGHT", 6, 10);
+	f.heart:SetSize(23, 23);
+	f.heart:SetPoint("LEFT", f.text, "RIGHT", 5, 8);
 
 	f.icon = f:CreateTexture(nil, "OVERLAY");
 	f.icon:SetSize(64, 64);
 	f.icon:SetPoint("CENTER");
+
+	f.count = f:CreateFontString(nil, "OVERLAY");
+	f.count:SetFont(FONT, COUNT_SIZE, "OUTLINE");
+	f.count:SetShadowColor(0, 0, 0, 1);
+	f.count:SetShadowOffset(0, -2);
 
 	f:SetScript("OnUpdate", OnUpdate);
 	return f;
@@ -131,14 +147,26 @@ local function Acquire()
 	return oldest;
 end
 
-function ns.ShowBubble(kind, x, y, pack)
-	local style = (PACK_STYLES[pack] or STYLES)[kind];
+-- The clip's own caption (Captions.lua), else a random text of the pool.
+local function Caption(texts, pack, path)
+	local captions = ns.CAPTIONS and ns.CAPTIONS[pack];
+	local name = captions and path and path:match("([^\\/]+)%.ogg$");
+	return name and captions[name] or texts[math.random(#texts)];
+end
+
+-- count, if given, shows as "#4,210" under the text or icon; path is the
+-- clip that plays, to pick its caption. text replaces the caption (and shows
+-- even in a pack with an icon), scale makes the popup bigger.
+function ns.ShowBubble(kind, x, y, pack, count, path, text, scale)
+	local style = ns.BubbleStyle(pack, kind);
 	local texts = style and style.texts or TEXTS[kind];
 	if not texts or not style then
 		return;
 	end
 	local f = Acquire();
 	f.style = style;
+	f.boost = scale or 1;
+	local icon = not text and style.icon;
 	f.age = 0;
 	f.x, f.y = x, y;
 	-- Small uwus scatter so several in a row don't stack on one spot.
@@ -146,17 +174,27 @@ function ns.ShowBubble(kind, x, y, pack)
 		f.x = x + math.random(-110, 110);
 		f.y = y + math.random(-40, 60);
 	end
-	f.text:SetShown(not style.icon);
-	f.icon:SetShown(style.icon ~= nil);
-	if style.icon then
-		f.icon:SetTexture(MEDIA .. "textures\\" .. style.icon);
+	-- A big popup stays up longer and floats like the uwu text.
+	f.lifetime = scale and scale > 1 and LIFETIME * 1.5 or nil;
+	f.showsIcon = icon and true or false;
+	f.text:SetShown(not icon);
+	f.icon:SetShown(icon and true or false);
+	if icon then
+		f.icon:SetTexture(MEDIA .. "textures\\" .. icon);
 		f.icon:SetVertexColor(unpack(style.text));
 	else
-		f.text:SetText(texts[math.random(#texts)]);
+		f.text:SetText(text or Caption(texts, pack or "uwu", path));
 		f.text:SetTextColor(unpack(style.text));
 	end
 	f.heart:SetShown(style.heart == true);
 	f.heart:SetVertexColor(unpack(style.text));
+	f.count:SetShown(count ~= nil);
+	if count then
+		f.count:ClearAllPoints();
+		f.count:SetPoint("TOP", icon and f.icon or f.text, "BOTTOM", 0, -2);
+		f.count:SetText("#" .. ns.FormatCount(count));
+		f.count:SetTextColor(unpack(style.text));
+	end
 	OnUpdate(f, 0);
 	f:Show();
 end

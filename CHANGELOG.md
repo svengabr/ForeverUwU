@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+- New crit counter: every crit of yours counts, per character and per session. `/uwu` shows this session's crits and the total with a reset button, **Crit count in the text** shows the count under the floating text ("#128"), and **Crit counter on screen** adds a small box you can drag anywhere. Both are off by default.
+- The MLG pack gets 17 more clips: esport and arena shooter announcer calls on your crits ("Headshot!", "Boom headshot!", "Double kill", "Triple kill!", "Killing spree", "Dominating!", "Godlike!", "Unstoppable!", "Rampage!", "First blood", "Impressive!") and more fails when you get hit ("You have been slain", "Game over", "Game over, man!", "Noooo!", "Why, bro?", a fail trumpet), with new captions like "HEADSHOT" and "GAME OVER".
+- The floating text now fits the sound that plays: "DAMN SON" for "Damn son!", "ara ara~" for an ara ara, "nyan~" for a nyan and so on, in the uwu and the MLG pack.
+- Milestone cheers: your 100th, 500th, 1,000th, 2,500th, 5,000th and every 10,000th crit gets a cheer and a big "1,000 CRITS!" popup. Test with `/uwu milestone`.
+- Sound when you die: "Wasted", "Mission failed", "You have been slain" or "Game over" in the MLG pack, "that hurt, senpai!" or "itai!" in the uwu pack. Test with `/uwu death`.
+- The crit count now also remembers your biggest crit ("best 1,234" in `/uwu` and the counter box), as far as the game shows the amounts: in combat it often hides them.
+- Hatsune Miku joins the uwu pack: "Miku dayo~", "Oh, hey!", "Oh, thank you~", "Hello?", "Hmm?" and the SEGA jingle on your crits, "Nani!?" and a scream when you get hit.
+- The options window has a live preview: the floating text, the crit count under it, a small uwu, the hurt text, the milestone popup and the counter box, in your sound pack's look. Switched-off parts show faded with "off", and hovering an option pops its part.
+- The floating text is a bit smaller.
+- The X of the options window now also closes it in combat.
+- The MLG pack button in the options now has its own tooltip.
+
 ## 1.5.0
 
 - New sound pack **MLG**, to pick with `/uwu` > Sound pack: your crits play montage parody classics ("Damn son!", "Oh baby a triple!", "Wombo combo!", "Wow", air horns …) with loud green captions like "360 NO SCOPE"; a crit or big hit on you plays "Emotional damage!", "Mission failed", "Oof", "Bruh" and the sad violin. Short clips from Bill Sussman's MLG voice pack for the PlanetSide 2 Recursion tracker plus MLG favorites from myinstants.com.

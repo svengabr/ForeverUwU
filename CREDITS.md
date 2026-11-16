@@ -10,6 +10,10 @@ Clips cut from YouTube: Hannah OwO, Pokimane, Ironmouse, Gawr Gura, Kobo Kanaeru
 "40 VTubers saying Ara Ara", Love Live! (Nico Nico Nii), Steins;Gate (Tuturu), Non Non Biyori (Nyanpasu),
 Demon Slayer (Shinobu), Kaguya-sama (Chika) and uwu / ara ara meme compilations.
 
+The Hatsune Miku clips (Crypton Future Media; voice clips and the SEGA jingle from the Project DIVA games by SEGA)
+are short spoken bits as shared on myinstants.com, no song excerpts. The same applies: all rights stay with their
+owners, and the clips are removed on request.
+
 The Hitmarker sound pack uses the hit marker tick and the Intervention sniper shot from Call of Duty: Modern Warfare 2
 (Activision / Infinity Ward), as shared on myinstants.com. The same applies: all rights stay with their owners, and
 the clips are removed on request.
@@ -17,7 +21,8 @@ the clips are removed on request.
 The MLG sound pack uses short clips from Bill Sussman's "Official MLG Recursion Voice Pack" for the PlanetSide 2
 Recursion stat tracker, itself cut from montage parody memes, and MLG meme clips as shared on myinstants.com
 ("Wow", "Oh baby a triple", "Get noscoped", "Emotional damage", "Mission failed", the Roblox "oof", GTA V "wasted",
-the sad violin …). All rights stay with their owners, and the clips are removed on request.
+the sad violin …), plus announcer calls from Unreal Tournament, Halo, Quake, Dota 2 and Mobile Legends, the
+"Game over, man!" line from Aliens and the Plants vs. Zombies "no", also from myinstants.com. All rights stay with their owners, and the clips are removed on request.
 
 ## Font
 

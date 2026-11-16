@@ -27,8 +27,10 @@ Other players' crits on the player's own mobs inside such a window still count; 
 - **Throttle:** a full crit uwu plays at most every `critCooldown` s (default 1.5); crits in between play a small
   uwu, at most every 0.2 s (`SMALL_GAP`). Hurt sounds have their own `hurtCooldown` (default 3 s) and also reset
   the crit cooldown so the two don't talk over each other.
-- **Floating text:** `Bubble.lua` (`ns.ShowBubble`) pops a short text per pool over the screen center (addons can't
-  read the character's screen position; the default camera keeps it centered), offset `bubbleX` / `bubbleY`. Font
+- **Floating text:** `Bubble.lua` (`ns.ShowBubble`) pops a short text over the screen center (addons can't read the
+  character's screen position; the default camera keeps it centered): the clip's own caption from `Captions.lua`
+  (`ns.CAPTIONS[pack][file name without .ogg]`, a title rather than a transcript; small uwus share the crit names),
+  else a random text of its pool. Offset `bubbleX` / `bubbleY`. Font
   `fonts/MochiyPopOne-Regular.ttf` (SIL OFL, `fonts/OFL.txt`), subset to Latin with
   `pyftsubset --unicodes="U+0020-007E,U+00A0-00FF,U+2014,U+2019,U+201C,U+201D,U+2026,U+2661,U+2665,U+FF5E"`.
   `textures/heart.tga` comes from `python tools/build_textures.py`. A font or texture path that doesn't exist is a
@@ -38,10 +40,25 @@ Other players' crits on the player's own mobs inside such a window still count; 
   **Sounds** (`/uwu sounds`: every clip of the chosen pack and pool with a checkbox to switch it off and a button
   to hear it; `db.muted`, keyed by sound path, muted clips stay out of the shuffle bag). Esc > Options > AddOns >
   Forever UwU only holds a button that opens the window. SavedVariable `ForeverUwUDB`;
-  `/uwu crit|small|hurt` plays a test sound. `offInParty` / `offInRaid` (default off) silence crit and hurt sounds
+  `/uwu crit|small|hurt|milestone|death` plays a test sound. `offInParty` / `offInRaid` (default off) silence crit and hurt sounds
   in a group (`IsInGroup` / `IsInRaid`); test sounds still play. The General tab shows a mascot (`textures/girl.tga`, 256×512, from
   `media/girl.svg` via `python tools/build_girl.py`, needs Chrome/Edge + Pillow) right of the controls; headings
-  there stop at x 484 so their rules don't cross her. Sounds play on the Master channel.
+  there stop at x 484 so their rules don't cross her. Above her sits a live preview (`Preview.lua`,
+  `ns.CreatePreview`, 160 × 300) drawn with `Bubble.lua`'s own styles (`ns.BubbleStyle`): each part is bound to
+  an option key, faded with "off" when that option is off, and pops when its checkbox is hovered. Controls in
+  the General tab must stay left of x 484. Sounds play on the Master channel.
+- **Crit counter:** every crit taken as the player's own counts (`CountCrit` in `OnOwnCrit`, before the sound
+  checks, so also while muted, on cooldown or silenced in a group): per session in memory, per character in
+  `db.critCounts["Name-Realm"]`. It shows as "#128" under the floating text of a crit (`bubbleCount`, default off),
+  as a line with a reset button (StaticPopup) in the General tab, and in an optional draggable box on screen
+  (`Counter.lua`, `counter`, default off, spot `counterX` / `counterY` from the screen center). Nothing goes to chat.
+  The biggest crit is kept too (session, and `db.bestCrits["Name-Realm"]`), but only when `UNIT_COMBAT` shows the
+  amount; in combat it can be a secret value, then the crit counts without an amount.
+- **Milestones, death** (both default on): crit count milestones (100, 500, 1,000, 2,500, 5,000, then every 10,000; `milestones`) play a clip from
+  `MILESTONE_CLIPS[pack]` with a big "1,000 CRITS!" (`ShowBubble` text / scale). `PLAYER_DEAD` plays a random clip
+  of `DEATH_CLIPS[pack]` from the hurt pool (`death`). These tables name clips by file name; a missing or muted
+  clip falls back to the normal pool. Crit streaks with announcer calls were tried and dropped (2026-11-16): the
+  maintainer didn't like them.
 
 ## Sounds
 
@@ -52,8 +69,8 @@ WoW can't list files, so every clip is named in a generated Lua file:
 | public | `raw/public/<pool>/` | `sounds/<pool>/*.ogg` | `Sounds.lua` |
 | local | `raw/local/<pool>/` | `sounds/local/<pool>/*.ogg` (git-ignored) | `SoundsLocal.lua` (git-ignored) |
 
-Run `python tools/build_sounds.py` after changing raw clips (needs ffmpeg). It trims silence, makes mono 44.1 kHz,
-loudness-normalizes and encodes Ogg Vorbis. Without a `small` folder, small uwus are derived from the crit clips.
+Run `python tools/build_sounds.py` after changing raw clips (needs ffmpeg), and give every new public clip a caption in
+`Captions.lua`. It trims silence, makes mono 44.1 kHz, loudness-normalizes and encodes Ogg Vorbis. Without a `small` folder, small uwus are derived from the crit clips.
 
 **Sound packs:** a set holds one list per pack (`pack = "uwu"` / `"hitmarker"` / `"mlg"`, `PACKS` in `build_sounds.py` and
 `ForeverUwU.lua`); only the pack chosen in the options (`db.pack`) plays. The uwu pack keeps the folders above,
@@ -69,9 +86,11 @@ draw a DMCA takedown; `CREDITS.md` names the source and offers removal on reques
 packaged. The same goes for the hitmarker pack (decided 2026-11-10): the hit marker tick and the Intervention
 shot from Call of Duty: Modern Warfare 2 ship in the public set (`raw/public/hitmarker/`), credited in
 `CREDITS.md`. The MLG pack (decided 2026-11-16) ships in the public set too (`raw/public/mlg/`): short voice
-clips from Bill Sussman's MLG voice pack for the PlanetSide 2 Recursion tracker plus MLG clips from myinstants.
+clips from Bill Sussman's MLG voice pack for the PlanetSide 2 Recursion tracker plus MLG clips and esport / arena
+shooter announcer calls (headshot, triple kill, godlike …) from myinstants.
 Only clean, short clips: the voice pack's song snippets (10-37 s) and clips with slurs, profanity or sexual lines
-stay out. 23 Freesound clips (CC0 / CC BY) were tried and dropped as not good enough (`raw/unused/freesound/`).
+stay out. Hatsune Miku (decided 2026-11-16) joins the uwu pack the same way: short spoken clips from myinstants
+(`miku-*`), no song excerpts. 23 Freesound clips (CC0 / CC BY) were tried and dropped as not good enough (`raw/unused/freesound/`).
 No sexually explicit sounds in the public set (CurseForge content rules).
 
 ## Rules

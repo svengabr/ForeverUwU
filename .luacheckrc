@@ -8,9 +8,15 @@ globals = {
   "ForeverUwUDB",
   "SLASH_FOREVERUWU1",
   "SlashCmdList",
+  "StaticPopupDialogs",
 }
 
 read_globals = {
+  "GetRealmName",
+  "NO",
+  "StaticPopup_Show",
+  "UnitName",
+  "YES",
   "BackdropTemplateMixin",
   "ButtonFrameTemplate_HideButtonBar",
   "ButtonFrameTemplate_HidePortrait",

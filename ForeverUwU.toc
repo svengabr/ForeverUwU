@@ -14,9 +14,12 @@
 ## X-Curse-Project-ID: 1732416
 
 Sounds.lua
+Captions.lua
 #@do-not-package@
 SoundsLocal.lua
 #@end-do-not-package@
 Bubble.lua
 ForeverUwU.lua
+Counter.lua
+Preview.lua
 Options.lua

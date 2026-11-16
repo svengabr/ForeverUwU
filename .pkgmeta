@@ -17,3 +17,4 @@ ignore:
   - SoundsLocal.lua
   - AGENTS.md
   - CLAUDE.md
+  - docs
