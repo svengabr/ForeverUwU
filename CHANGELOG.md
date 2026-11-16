@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.6.0
 
 - New crit counter: every crit of yours counts, per character and per session. `/uwu` shows this session's crits and the total with a reset button, **Crit count in the text** shows the count under the floating text ("#128"), and **Crit counter on screen** adds a small box you can drag anywhere. Both are off by default.
 - The MLG pack gets 17 more clips: esport and arena shooter announcer calls on your crits ("Headshot!", "Boom headshot!", "Double kill", "Triple kill!", "Killing spree", "Dominating!", "Godlike!", "Unstoppable!", "Rampage!", "First blood", "Impressive!") and more fails when you get hit ("You have been slain", "Game over", "Game over, man!", "Noooo!", "Why, bro?", a fail trumpet), with new captions like "HEADSHOT" and "GAME OVER".
