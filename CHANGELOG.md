@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.5.0
 
 - New sound pack **MLG**, to pick with `/uwu` > Sound pack: your crits play montage parody classics ("Damn son!", "Oh baby a triple!", "Wombo combo!", "Wow", air horns …) with loud green captions like "360 NO SCOPE"; a crit or big hit on you plays "Emotional damage!", "Mission failed", "Oof", "Bruh" and the sad violin. Short clips from Bill Sussman's MLG voice pack for the PlanetSide 2 Recursion tracker plus MLG favorites from myinstants.com.
 
