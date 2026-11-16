@@ -41,6 +41,7 @@ local CHANNEL = "Master";
 local PACKS = {
 	{ id = "uwu", label = "UwU" },
 	{ id = "hitmarker", label = "Hitmarker" },
+	{ id = "mlg", label = "MLG" },
 };
 local DEFAULT_PACK = PACKS[1].id;
 

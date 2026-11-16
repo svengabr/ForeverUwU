@@ -14,6 +14,11 @@ The Hitmarker sound pack uses the hit marker tick and the Intervention sniper sh
 (Activision / Infinity Ward), as shared on myinstants.com. The same applies: all rights stay with their owners, and
 the clips are removed on request.
 
+The MLG sound pack uses short clips from Bill Sussman's "Official MLG Recursion Voice Pack" for the PlanetSide 2
+Recursion stat tracker, itself cut from montage parody memes, and MLG meme clips as shared on myinstants.com
+("Wow", "Oh baby a triple", "Get noscoped", "Emotional damage", "Mission failed", the Roblox "oof", GTA V "wasted",
+the sad violin …). All rights stay with their owners, and the clips are removed on request.
+
 ## Font
 
 The floating text uses [Mochiy Pop One](https://github.com/fontdasu/Mochiypop) by the Mochiypop Project Authors,

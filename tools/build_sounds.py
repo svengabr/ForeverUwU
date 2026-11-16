@@ -37,7 +37,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 POOLS = ("crit", "hurt", "small")
 # The first pack is the default one and keeps the folders without a pack name.
-PACKS = ("uwu", "hitmarker")
+PACKS = ("uwu", "hitmarker", "mlg")
 RAW_EXT = {".wav", ".mp3", ".ogg", ".m4a", ".flac", ".webm", ".opus", ".aac"}
 SETS = {
     "public": (ROOT / "raw" / "public", ROOT / "sounds", ROOT / "Sounds.lua"),

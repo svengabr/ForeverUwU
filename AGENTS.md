@@ -55,12 +55,12 @@ WoW can't list files, so every clip is named in a generated Lua file:
 Run `python tools/build_sounds.py` after changing raw clips (needs ffmpeg). It trims silence, makes mono 44.1 kHz,
 loudness-normalizes and encodes Ogg Vorbis. Without a `small` folder, small uwus are derived from the crit clips.
 
-**Sound packs:** a set holds one list per pack (`pack = "uwu"` / `"hitmarker"`, `PACKS` in `build_sounds.py` and
+**Sound packs:** a set holds one list per pack (`pack = "uwu"` / `"hitmarker"` / `"mlg"`, `PACKS` in `build_sounds.py` and
 `ForeverUwU.lua`); only the pack chosen in the options (`db.pack`) plays. The uwu pack keeps the folders above,
 any other pack sits in `raw/<set>/<pack>/<pool>/` and `sounds/[local/]<pack>/<level>/<pool>/`. A pack without
 clips is left out of the Lua file, and the options show the pack dropdown only when two packs have clips.
 `PACK_STYLES` in `Bubble.lua` gives a pack its own floating look (hitmarker: `textures/hitmarker.tga` instead of
-text).
+text; mlg: its own captions via `texts`).
 
 **Public set = the shipped sounds.** The maintainer decided (2026-10-07) to ship the myinstants meme clips
 (cute uwu, owo, ara ara, kyaa, itai, baka …) in the public set, knowing they are not freely licensed and could
@@ -68,7 +68,10 @@ draw a DMCA takedown; `CREDITS.md` names the source and offers removal on reques
 `SoundsLocal.lua`, in a `#@do-not-package@` block and `.pkgmeta` `ignore`) stays for clips that should never be
 packaged. The same goes for the hitmarker pack (decided 2026-11-10): the hit marker tick and the Intervention
 shot from Call of Duty: Modern Warfare 2 ship in the public set (`raw/public/hitmarker/`), credited in
-`CREDITS.md`. 23 Freesound clips (CC0 / CC BY) were tried and dropped as not good enough (`raw/unused/freesound/`).
+`CREDITS.md`. The MLG pack (decided 2026-11-16) ships in the public set too (`raw/public/mlg/`): short voice
+clips from Bill Sussman's MLG voice pack for the PlanetSide 2 Recursion tracker plus MLG clips from myinstants.
+Only clean, short clips: the voice pack's song snippets (10-37 s) and clips with slurs, profanity or sexual lines
+stay out. 23 Freesound clips (CC0 / CC BY) were tried and dropped as not good enough (`raw/unused/freesound/`).
 No sexually explicit sounds in the public set (CurseForge content rules).
 
 ## Rules

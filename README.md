@@ -6,7 +6,7 @@ A silly little addon for **World of Warcraft: Forever**: every crit deserves an 
 
 When you crit, a random anime uwu plays and a little "uwu~" pops up over your character. Only you see it. When you get crit or take a big hit, you get an angry uwu, an ara ara or a startled kyaa. If the crits come fast, the addon plays small, quiet uwus in between so it doesn't turn into a wall of noise.
 
-Not in the mood for uwus? Pick the **Hitmarker** sound pack. Your crits then tick like a hit marker in an old shooter, and a big hit on you cracks like a sniper rifle.
+Not in the mood for uwus? Pick the **Hitmarker** sound pack. Your crits then tick like a hit marker in an old shooter, and a big hit on you cracks like a sniper rifle. Or go full montage parody with the **MLG** pack: air horns, "Damn son!", "Oh baby a triple!" on your crits and "Emotional damage!" when you get hit.
 
 ![Every crit deserves an uwu](https://raw.githubusercontent.com/svengabr/ForeverUwU/main/media/gallery/01-overview.jpg)
 

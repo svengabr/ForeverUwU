@@ -38,6 +38,18 @@ local PACK_STYLES = {
 		small = { text = { 1, 1, 1 }, scale = 0.6, alpha = 0.8, icon = "hitmarker", lifetime = 0.35, rise = 0 },
 		hurt = { text = { 1, 0.2, 0.15 }, scale = 1.2, alpha = 1, icon = "hitmarker", lifetime = 0.6, rise = 0 },
 	},
+	-- Montage parody captions: loud green on a crit, red when the player is hit.
+	mlg = {
+		crit = {
+			text = { 0.4, 1, 0.2 }, scale = 1, alpha = 1,
+			texts = { "WOW", "360 NO SCOPE", "OH BABY", "WOMBO COMBO", "MLG", "+100", "GET REKT", "DAMN SON" },
+		},
+		small = { text = { 1, 0.9, 0.2 }, scale = 0.55, alpha = 0.8, texts = { "+10", "MLG", "wow", "dank", "+1" } },
+		hurt = {
+			text = { 1, 0.25, 0.2 }, scale = 1.1, alpha = 1,
+			texts = { "REKT", "OOF", "WASTED", "BRUH", "2SAD4ME", "GG" },
+		},
+	},
 };
 local ICON_FADE = 0.2;
 
@@ -120,8 +132,8 @@ local function Acquire()
 end
 
 function ns.ShowBubble(kind, x, y, pack)
-	local texts = TEXTS[kind];
 	local style = (PACK_STYLES[pack] or STYLES)[kind];
+	local texts = style and style.texts or TEXTS[kind];
 	if not texts or not style then
 		return;
 	end
