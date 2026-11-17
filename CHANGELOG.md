@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.7.0
 
 - **Seconds between full uwus** now goes up to 30 s (was 5 s), in steps of 0.5 s, so a full uwu can stay special when crits come often.
 
