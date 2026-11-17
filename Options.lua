@@ -262,7 +262,7 @@ local function BuildGeneral(panel)
 	y = Add(Check(panel, "small", "Small uwus in between",
 		"When crits come faster than the cooldown below, plays short quiet uwus instead of nothing.", y));
 	y = Add(Slider(panel, "critCooldown", "Seconds between full uwus",
-		"A full uwu plays at most this often; crits in between get a small uwu.", 0, 5, 0.25, "%.2f s", y));
+		"A full uwu plays at most this often; crits in between get a small uwu.", 0, 30, 0.5, "%.1f s", y));
 	-- The crit count, kept up to date while the window is open.
 	local countCaption = Text(panel, "GameFontHighlight", "Crit count");
 	countCaption:SetPoint("TOPLEFT", 14, y - 4);

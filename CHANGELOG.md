@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Seconds between full uwus** now goes up to 30 s (was 5 s), in steps of 0.5 s, so a full uwu can stay special when crits come often.
+
 ## 1.6.0
 
 - New crit counter: every crit of yours counts, per character and per session. `/uwu` shows this session's crits and the total with a reset button, **Crit count in the text** shows the count under the floating text ("#128"), and **Crit counter on screen** adds a small box you can drag anywhere. Both are off by default.
