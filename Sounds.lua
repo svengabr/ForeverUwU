@@ -325,3 +325,5 @@ ns.soundLists[#ns.soundLists + 1] = {
 		"Interface\\AddOns\\ForeverUwU\\sounds\\mlg\\%d\\small\\yack-yack-yack.ogg",
 	},
 };
+ns.spitSounds = ns.spitSounds or {};
+ns.spitSounds[#ns.spitSounds + 1] = "Interface\\AddOns\\ForeverUwU\\sounds\\spit\\%d\\%s\\hawk-tuah.ogg";

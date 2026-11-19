@@ -21,6 +21,9 @@ after a swing; any crit counts up to 1.5 s after `UNIT_SPELLCAST_SUCCEEDED` / a 
 Whether a nameplate crit is on the target is known from the target unit's copy in the same frame, so crits wait
 until the end of the frame. Hits on mobs tagged outside the group (`UnitIsTapDenied`, not secret) are ignored.
 Other players' crits on the player's own mobs inside such a window still count; DoT/HoT ticks and pet hits are missed.
+Crit heals on the player count from `UNIT_COMBAT` only (`COMBAT_TEXT_UPDATE` serves just the hurt sound), and while
+the player targets themselves the `target` copy of each hit is skipped (`TargetIsPlayer`, `UnitIsUnit` guarded with
+`issecretvalue`), so nothing counts twice.
 
 - **Pools:** `crit` (full uwu), `small` (short quiet uwu), `hurt` (angry uwu / ara ara). Each pool is a shuffle
   bag: every clip plays once before one repeats.
@@ -40,7 +43,7 @@ Other players' crits on the player's own mobs inside such a window still count; 
   **Sounds** (`/uwu sounds`: every clip of the chosen pack and pool with a checkbox to switch it off and a button
   to hear it; `db.muted`, keyed by sound path, muted clips stay out of the shuffle bag). Esc > Options > AddOns >
   Forever UwU only holds a button that opens the window. SavedVariable `ForeverUwUDB`;
-  `/uwu crit|small|hurt|milestone|death` plays a test sound. `offInParty` / `offInRaid` (default off) silence crit and hurt sounds
+  `/uwu crit|small|hurt|milestone|death|spit` plays a test sound. `offInParty` / `offInRaid` (default off) silence crit and hurt sounds
   in a group (`IsInGroup` / `IsInRaid`); test sounds still play. The General tab shows a mascot (`textures/girl.tga`, 256×512, from
   `media/girl.svg` via `python tools/build_girl.py`, needs Chrome/Edge + Pillow) right of the controls; headings
   there stop at x 484 so their rules don't cross her. Above her sits a live preview (`Preview.lua`,
@@ -54,6 +57,19 @@ Other players' crits on the player's own mobs inside such a window still count; 
   (`Counter.lua`, `counter`, default off, spot `counterX` / `counterY` from the screen center). Nothing goes to chat.
   The biggest crit is kept too (session, and `db.bestCrits["Name-Realm"]`), but only when `UNIT_COMBAT` shows the
   amount; in combat it can be a secret value, then the crit counts without an amount.
+- **Hawk tuah on /spit** (`spit`, default on): `CHAT_MSG_TEXT_EMOTE` (text, sender, GUID as 12th arg) whose
+  lowercased text has a spit verb (`SPIT_WORDS`: spit / spuckt / crach / escup / sput, the text is localized and
+  carries no emote token) plays `ns.spitSounds`, at most every `SPIT_GAP` s, for every pack. Addons can't play a
+  sound at a world position, so `build_sounds.py` renders the clip in stereo at five spots (`PANS` / `SPIT_PANS`:
+  l2 l1 c r1 r2, path holds `%d` level and `%s` spot). The side comes from the spitter's nameplate screen x (needs
+  friendly nameplates; only while in view), else for party / raid members from `UnitPosition` (north first, then
+  west) and `GetPlayerFacing` (character facing, not camera; nil in instances), else the middle. In chat messaging lockdown (dungeon / raid maps,
+  encounters, keystones, PvP matches; not plain open-world combat) text, sender and GUID of the event are secret
+  (`SecretInChatMessagingLockdown` in the generated API docs), so other players' spits can't be detected there; the
+  player's own spit stays readable (tested in a dungeon, 2026-11-20). A readable text with a secret sender plays
+  centered. The nameplate side scans `C_NamePlate.GetNamePlates()` and reads the unit from the plate's `unitToken`
+  (set by Blizzard's nameplate code). `/uwu spit [left|right]` tests it. Raw clip `raw/public/spit/hawk-tuah.mp3` = myinstants
+  `short-hawk-tuah.mp3`, only the two words (decided 2026-11-19: nothing after "hawk tuah", CurseForge content rules).
 - **Milestones, death** (both default on): crit count milestones (100, 500, 1,000, 2,500, 5,000, then every 10,000; `milestones`) play a clip from
   `MILESTONE_CLIPS[pack]` with a big "1,000 CRITS!" (`ShowBubble` text / scale). `PLAYER_DEAD` plays a random clip
   of `DEATH_CLIPS[pack]` from the hurt pool (`death`). These tables name clips by file name; a missing or muted

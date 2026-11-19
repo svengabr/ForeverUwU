@@ -24,11 +24,18 @@ normalized, so no clip is much louder than the others, and cut to 2.5 s. PlaySou
 volume argument, so each clip is rendered once per volume level (LEVELS, in
 percent) and the addon's volume slider picks the level.
 
+The spit clips (hawk tuah when someone uses /spit) belong to no pack and are
+rendered in stereo, once per spot from far left to far right (PANS), so the
+addon can play them from the side the spitter stands on:
+
+  raw/<set>/spit/*  ->  sounds/[local/]spit/<level>/<pan>/*.ogg
+
 Usage:  python tools/build_sounds.py [public|local ...]   (default: both)
 Needs ffmpeg on PATH.
 """
 
 import array
+import math
 import shutil
 import subprocess
 import sys
@@ -67,13 +74,17 @@ CAP = "atrim=0:2.5,afade=t=out:st=2.1:d=0.4"
 SMALL = "atrim=0:0.7,afade=t=out:st=0.5:d=0.2,volume=-12dB"
 # Keep in sync with VOLUME_LEVELS in ForeverUwU.lua.
 LEVELS = (20, 40, 60, 80, 100)
+# Spit clip spots, left to right: folder name -> pan (-1 far left, 1 far right).
+# Not all the way out: a clip in one ear only sounds broken. Keep the names in
+# sync with SPIT_PANS in ForeverUwU.lua.
+PANS = {"l2": -0.8, "l1": -0.4, "c": 0.0, "r1": 0.4, "r2": 0.8}
 
 
-def ffmpeg(src, dst, filters):
+def ffmpeg(src, dst, filters, channels=1):
     dst.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(
         # No tags from the source (titles, artists, comments) and no encoder tag either.
-        ["ffmpeg", "-v", "error", "-y", "-i", str(src), "-vn", "-ac", "1", "-ar", "44100",
+        ["ffmpeg", "-v", "error", "-y", "-i", str(src), "-vn", "-ac", str(channels), "-ar", "44100",
          "-map_metadata", "-1", "-map_metadata:s:a", "-1", "-fflags", "+bitexact", "-flags:a", "+bitexact", "-metadata:s:a", "encoder=",
          "-af", filters, "-c:a", "libvorbis", "-q:a", "4", str(dst)],
         check=True,
@@ -129,6 +140,31 @@ def build_pack(raw_dir, out_dir):
     return names
 
 
+def pan(position):
+    """Constant-power pan of a mono clip to a stereo spot."""
+    angle = (position + 1) * math.pi / 4
+    return f"pan=stereo|c0={math.cos(angle):.4f}*c0|c1={math.sin(angle):.4f}*c0"
+
+
+def build_spit(raw_dir, out_dir):
+    """Renders the spit clips per level and pan spot; returns their names."""
+    work = out_dir / "_full"
+    shutil.rmtree(out_dir, ignore_errors=True)
+    sources = sorted(p for p in (raw_dir / "spit").glob("*") if p.suffix.lower() in RAW_EXT)
+    for src in sources:
+        ffmpeg(src, work / (src.stem + ".ogg"), f"{trim(src)},{CAP},{NORMALIZE}")
+    names = [src.stem + ".ogg" for src in sources]
+    for level in LEVELS:
+        for spot, position in PANS.items():
+            for clip in names:
+                ffmpeg(work / clip, out_dir / str(level) / spot / clip,
+                       f"{pan(position)},volume={level / 100:.2f}", channels=2)
+    shutil.rmtree(work, ignore_errors=True)
+    if not names:
+        shutil.rmtree(out_dir, ignore_errors=True)
+    return names
+
+
 def build(name):
     set_raw, set_out, manifest = SETS[name]
     lines = [
@@ -161,6 +197,16 @@ def build(name):
             lines.append("\t},")
         lines.append("};")
         print(f"{name}/{pack}: " + ", ".join(f"{len(names[p])} {p}" for p in POOLS) + f" x {len(LEVELS)} levels")
+
+    out_dir = set_out / "spit"
+    spit = build_spit(set_raw, out_dir)
+    if spit:
+        # %d is the level, %s the pan spot.
+        base = "\\\\".join(["Interface", "AddOns", "ForeverUwU", *out_dir.relative_to(ROOT).parts, "%d", "%s"])
+        lines.append("ns.spitSounds = ns.spitSounds or {};")
+        for clip in spit:
+            lines.append(f'ns.spitSounds[#ns.spitSounds + 1] = "{base}\\\\{clip}";')
+        print(f"{name}/spit: {len(spit)} clips x {len(PANS)} spots x {len(LEVELS)} levels")
     manifest.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
 

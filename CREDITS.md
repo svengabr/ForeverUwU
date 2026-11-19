@@ -24,6 +24,9 @@ Recursion stat tracker, itself cut from montage parody memes, and MLG meme clips
 the sad violin …), plus announcer calls from Unreal Tournament, Halo, Quake, Dota 2 and Mobile Legends, the
 "Game over, man!" line from Aliens and the Plants vs. Zombies "no", also from myinstants.com. All rights stay with their owners, and the clips are removed on request.
 
+The "hawk tuah" played on `/spit` is cut from the Hailey Welch street interview meme as shared on myinstants.com,
+only the two words, nothing after them. All rights stay with their owners, and the clip is removed on request.
+
 ## Font
 
 The floating text uses [Mochiy Pop One](https://github.com/fontdasu/Mochiypop) by the Mochiypop Project Authors,

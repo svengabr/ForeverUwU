@@ -32,6 +32,8 @@ local DEFAULTS = {
 	-- Cheers at crit count milestones and a sound when the player dies.
 	milestones = true,
 	death = true,
+	-- Hawk tuah when someone nearby uses /spit.
+	spit = true,
 };
 
 -- PlaySoundFile has no volume argument, so tools/build_sounds.py renders every
@@ -320,6 +322,155 @@ local function Debug(...)
 	end
 end
 
+-- Hawk tuah when someone uses /spit. The emote comes as CHAT_MSG_TEXT_EMOTE
+-- with the text in the client's language and no emote token, so the verb is
+-- matched. Custom emotes (/e spits) come as CHAT_MSG_EMOTE and don't count.
+local SPIT_WORDS = { "%f[%a]spit", "%f[%a]spuckt", "%f[%a]crach", "%f[%a]escup", "%f[%a]sput" };
+local SPIT_GAP = 1;
+local lastSpit = 0;
+
+-- Addons can't play a sound at a spot in the world, so the clip is rendered
+-- in stereo at five spots from left to right (tools/build_sounds.py) and the
+-- one on the spitter's side plays.
+local SPIT_PANS = { "l2", "l1", "c", "r1", "r2" };
+
+local function Usable(...)
+	if not issecretvalue then
+		return true;
+	end
+	for i = 1, select("#", ...) do
+		if issecretvalue((select(i, ...))) then
+			return false;
+		end
+	end
+	return true;
+end
+
+-- The unit of the spitter, found by GUID or else by name.
+local function IsSpitter(unit, guid, name)
+	if not UnitExists(unit) then
+		return false;
+	end
+	local unitGuid = UnitGUID(unit);
+	if guid and guid ~= "" and Usable(unitGuid) then
+		return unitGuid == guid;
+	end
+	local unitName, realm = UnitName(unit);
+	if not Usable(unitName, realm) then
+		return false;
+	end
+	-- Chat may name a sender of the own realm as "Name-Realm" too, while
+	-- UnitName gives no realm for them.
+	return unitName == name or (realm and realm ~= "" and unitName .. "-" .. realm == name)
+		or ((not realm or realm == "") and unitName == strmatch(name, "^([^-]+)-"));
+end
+
+-- -1 far left .. 1 far right, or nil when unknown.
+local function SideOnScreen(guid, name)
+	if not (C_NamePlate and C_NamePlate.GetNamePlates) then
+		return nil;
+	end
+	-- Friendly players have a nameplate only while friendly nameplates are on,
+	-- and only while they are in view; the plate shows where they stand on screen.
+	-- Every shown plate, whatever its nameplateN number; Blizzard's nameplate
+	-- code keeps the unit on the plate (unitToken).
+	for _, plate in ipairs(C_NamePlate.GetNamePlates() or {}) do
+		local unit = plate.unitToken or plate.namePlateUnitToken;
+		if type(unit) == "string" and IsSpitter(unit, guid, name) then
+			local x = plate:GetCenter();
+			if not x or not Usable(x) then
+				return nil;
+			end
+			local mid = UIParent:GetWidth() * UIParent:GetEffectiveScale() / 2;
+			return math.max(-1, math.min(1, (x * plate:GetEffectiveScale() - mid) / mid));
+		end
+	end
+end
+
+-- Group members outside instances: where they stand next to the character,
+-- seen from the way the character faces (not the camera).
+local function SideInGroup(guid, name)
+	if not (UnitPosition and GetPlayerFacing) then
+		return nil;
+	end
+	local prefix, count = "party", 4;
+	if IsInRaid() then
+		prefix, count = "raid", 40;
+	end
+	for i = 1, count do
+		local unit = prefix .. i;
+		if IsSpitter(unit, guid, name) then
+			-- UnitPosition gives the north coordinate first, then the west one.
+			local north, west = UnitPosition(unit);
+			local myNorth, myWest = UnitPosition("player");
+			local facing = GetPlayerFacing();
+			if not (north and myNorth and facing) or not Usable(north, west, myNorth, myWest, facing) then
+				return nil;
+			end
+			local dn, dw = north - myNorth, west - myWest;
+			local distance = math.sqrt(dn * dn + dw * dw);
+			if distance < 0.5 then
+				return 0;
+			end
+			-- Facing is counted from north towards west; right of it is
+			-- (sin, -cos) in north / west terms.
+			return (dn * math.sin(facing) - dw * math.cos(facing)) / distance;
+		end
+	end
+end
+
+local function SpitPan(side)
+	if not side then
+		return "c";
+	end
+	local spot = math.floor((side + 1) / 2 * #SPIT_PANS) + 1;
+	return SPIT_PANS[math.max(1, math.min(#SPIT_PANS, spot))];
+end
+
+-- side: -1 far left .. 1 far right, nil for the middle.
+local function PlaySpit(side)
+	local list = ns.spitSounds;
+	if not list or #list == 0 then
+		return false;
+	end
+	PlaySoundFile(list[math.random(#list)]:format(db.volume, SpitPan(side)), CHANNEL);
+	return true;
+end
+
+local function OnTextEmote(text, name, guid)
+	-- The event is secret in chat messaging lockdown (dungeons, raids, boss
+	-- fights, PvP matches; not plain combat). Without the text there is
+	-- nothing to match; without the sender the clip plays centered.
+	local senderKnown = Usable(name, guid);
+	Debug("emote", Usable(text) and tostring(text) or "(secret text)",
+		senderKnown and tostring(name) or "(secret sender)");
+	if not db.spit or not Usable(text) or type(text) ~= "string" then
+		return;
+	end
+	if not senderKnown then
+		name, guid = nil, nil;
+	end
+	local lower = strlower(text);
+	local found = false;
+	for _, word in ipairs(SPIT_WORDS) do
+		if strfind(lower, word) then
+			found = true;
+			break;
+		end
+	end
+	local now = GetTime();
+	if not found or now - lastSpit < SPIT_GAP then
+		return;
+	end
+	lastSpit = now;
+	local side;
+	if name and guid ~= UnitGUID("player") and name ~= UnitName("player") then
+		side = SideOnScreen(guid, name) or SideInGroup(guid, name);
+	end
+	Debug("spit", name, side and ("%.2f"):format(side) or "middle");
+	PlaySpit(side);
+end
+
 -- UNIT_COMBAT has no source, so a crit counts as the player's own only when
 -- it lines up with something the player did: a melee swing or a spell, auto
 -- shot or channel that may still be on its way. PLAYER_SWING fires when the
@@ -372,23 +523,28 @@ local function OnSwing(swingType)
 	end
 end
 
+-- Only crits on the player. Crit heals on the player come as UNIT_COMBAT
+-- too; counting HEAL_CRIT here as well would count every one of them twice.
 local CRIT_TEXT = {
-	DAMAGE_CRIT = "hurt",
-	SPELL_DAMAGE_CRIT = "hurt",
-	HEAL_CRIT = "crit",
-	PERIODIC_HEAL_CRIT = "crit",
+	DAMAGE_CRIT = true,
+	SPELL_DAMAGE_CRIT = true,
 };
 
 local function OnCombatText(textType)
-	local kind = CRIT_TEXT[textType];
-	if kind then
-		Debug("text", textType, kind);
-	end
-	if kind == "hurt" then
+	if CRIT_TEXT[textType] then
+		Debug("text", textType);
 		OnHurt();
-	elseif kind == "crit" and db.critHeal then
-		OnCritIfMine();
 	end
+end
+
+-- Whether the player targets themselves. UnitIsUnit can be secret on
+-- restricted maps; then it is taken as no.
+local function TargetIsPlayer()
+	local same = UnitIsUnit("target", "player");
+	if issecretvalue and issecretvalue(same) then
+		return false;
+	end
+	return same and true or false;
 end
 
 -- The last plain hit on the target, until it is known whether it killed.
@@ -457,6 +613,11 @@ local function OnUnitCombat(unit, event, flags, amount, school)
 		OnNamePlateCombat(unit, event, flags, amount, school);
 		return;
 	elseif unit ~= "player" and unit ~= "target" then
+		return;
+	elseif unit == "target" and TargetIsPlayer() then
+		-- Every hit on a self-targeted player also comes as "player", which
+		-- handles it; the "target" copy would count a mob's crit as the
+		-- player's own and a crit heal twice.
 		return;
 	end
 	-- A mob tagged by someone outside the group is their fight; their crits on
@@ -527,6 +688,7 @@ local function UpdateEvents(frame)
 		frame:RegisterEvent("CHAT_MSG_COMBAT_XP_GAIN");
 		frame:RegisterEvent("PLAYER_SWING");
 		frame:RegisterEvent("PLAYER_DEAD");
+		frame:RegisterEvent("CHAT_MSG_TEXT_EMOTE");
 		frame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player");
 		frame:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", "player");
 		frame:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", "player");
@@ -536,6 +698,7 @@ local function UpdateEvents(frame)
 		frame:UnregisterEvent("CHAT_MSG_COMBAT_XP_GAIN");
 		frame:UnregisterEvent("PLAYER_SWING");
 		frame:UnregisterEvent("PLAYER_DEAD");
+		frame:UnregisterEvent("CHAT_MSG_TEXT_EMOTE");
 		frame:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED");
 		frame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_START");
 		frame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_STOP");
@@ -552,6 +715,7 @@ ns.VOLUME_STEP = VOLUME_STEP;
 ns.HasSounds = HasSounds;
 ns.Play = Play;
 ns.PlayPath = PlayPath;
+ns.PlaySpit = PlaySpit;
 
 function ns.UpdateEvents()
 	UpdateEvents(frame);
@@ -621,6 +785,9 @@ SlashCmdList.FOREVERUWU = function(msg)
 		OnDeath(true);
 	elseif msg == "milestone" then
 		PlayMilestone(1000);
+	elseif msg == "spit" or msg == "spit left" or msg == "spit right" then
+		-- /uwu spit left|right checks that the stereo spots work.
+		PlaySpit(msg == "spit left" and -1 or msg == "spit right" and 1 or nil);
 	elseif msg == "sounds" then
 		ns.ToggleOptions("sounds");
 	else
@@ -641,6 +808,9 @@ frame:SetScript("OnEvent", function(self, event, arg1, ...)
 		OnSwing(...);
 	elseif event == "PLAYER_DEAD" then
 		OnDeath();
+	elseif event == "CHAT_MSG_TEXT_EMOTE" then
+		-- text, sender, then the sender's GUID as the 12th argument.
+		OnTextEmote(arg1, (...), (select(11, ...)));
 	elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
 		lastCast = GetTime();
 	elseif event == "UNIT_SPELLCAST_CHANNEL_START" then

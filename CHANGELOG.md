@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Hawk tuah: when you or a player near you uses `/spit`, a "hawk tuah" plays, panned to the side the spitter stands on (by their nameplate when friendly nameplates are on, else for group members by where they stand next to you; otherwise from the middle). Out in the world only: in dungeons, raids, boss fights and PvP matches the game hides other players' emotes from addons. Switch it off with **Hawk tuah on /spit** under `/uwu`, test with `/uwu spit`, `/uwu spit left` and `/uwu spit right`.
+- Fixed: with **Also on my crit heals** on, a crit heal on yourself could count two or three times in the crit counter, and while targeting yourself a mob's crit on you could count as yours.
+
 ## 1.7.0
 
 - **Seconds between full uwus** now goes up to 30 s (was 5 s), in steps of 0.5 s, so a full uwu can stay special when crits come often.

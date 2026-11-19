@@ -18,6 +18,8 @@ Type `/uwu`, or open **Esc > Options > AddOns > Forever UwU**. You can set the v
 
 The addon also counts your crits: the options show this session's crits and your character's total, and you can switch on the count under the floating text ("#128") or a small crit counter on screen that you drag wherever you like. Your 100th, 1,000th, 10,000th … crit gets a cheer of its own, and dying gets a sound too. Both can be switched off.
 
+And when you or someone near you uses `/spit`, you hear a "hawk tuah", from the side the spitter stands on if the addon can tell: by their nameplate when friendly nameplates are on, else for group members by where they stand next to you. Test it with `/uwu spit`, `/uwu spit left` and `/uwu spit right`. Other players' spits only work out in the world: in dungeons, raids, boss fights and PvP matches the game hides their emotes from addons.
+
 ![Options](https://raw.githubusercontent.com/svengabr/ForeverUwU/main/media/gallery/03-options.jpg)
 
 ## Good to know

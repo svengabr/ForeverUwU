@@ -297,8 +297,11 @@ local function BuildGeneral(panel)
 	y = Heading(panel, "When you get hit hard", y);
 	y = Add(Check(panel, "hurt", "Angry uwu when I get hit hard",
 		"Plays an angry uwu or an ara ara when you take a critical hit or a big hit.", y));
-	y = Add(Check(panel, "death", "Sound when I die",
-		"Plays a sad or dramatic clip when your character dies: \"Wasted\", \"Mission failed\" (MLG), \"that hurt, senpai!\" … Try /uwu death.", y));
+	local death, afterDeath = Check(panel, "death", "Sound when I die",
+		"Plays a sad or dramatic clip when your character dies: \"Wasted\", \"Mission failed\" (MLG), \"that hurt, senpai!\" … Try /uwu death.", y);
+	y = Pair(death, Check(panel, "spit", "Hawk tuah on /spit",
+		"Plays \"hawk tuah\" when you or a player near you uses /spit, from the side they stand on: by their nameplate when friendly nameplates are on, else for group members by where they stand next to you. Other players' spits only work out in the world: in dungeons, raids and PvP the game hides their emotes from addons. Try /uwu spit, /uwu spit left and /uwu spit right.", y),
+		afterDeath, y);
 	y = Add(Slider(panel, "hurtPercent", "Big hit threshold",
 		"A single hit that takes at least this share of your maximum health counts as big. In combat the game hides hit amounts, so there only crits count.",
 		5, 100, 5, "%d %%", y));
