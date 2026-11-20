@@ -340,12 +340,73 @@ local POOLS = {
 };
 
 -- "sounds\%d\crit\cute-uwu-73482.ogg" -> "cute uwu";
--- "sounds\%d\crit\kawaiii-vvDVZA_Ui24_06.ogg" -> "kawaiii" (YouTube id and cut number)
+-- "sounds\%d\crit\kawaiii-vvDVZA_Ui24_06.ogg" -> "kawaiii" (YouTube id and cut number);
+-- "sounds\%d\crit\onii-chan-2.ogg" -> "onii chan", 2 (the file's own number)
 local function ClipName(path)
 	local name = path:match("([^\\]+)%.ogg$") or path;
-	name = name:gsub("%-" .. ("[%w_%-]"):rep(11) .. "_%d+$", "");
-	name = name:gsub("%-%d%d%d+$", "");
-	return (name:gsub("%-", " "));
+	local plain = true;
+	local stripped;
+	name, stripped = name:gsub("%-" .. ("[%w_%-]"):rep(11) .. "_%d+$", "");
+	plain = plain and stripped == 0;
+	name, stripped = name:gsub("%-%d%d%d+$", "");
+	plain = plain and stripped == 0;
+	local number = tonumber(name:match("%-(%d%d?)$"));
+	name = name:gsub("%-%d%d?$", "");
+	-- A plain "wow.ogg" next to "wow-2.ogg" is the first one.
+	if not number and plain then
+		number = 1;
+	end
+	return (name:gsub("%-", " ")), number;
+end
+
+-- Labels the clips and sorts them by label. Clips that share a name get a
+-- number so each row can be told apart: a file's own number is kept
+-- ("uwu-2" stays "uwu 2"), the others take the free numbers in file order.
+local function NameClips(clips)
+	local groups, order = {}, {};
+	for _, clip in ipairs(clips) do
+		local name, number = ClipName(clip.path);
+		clip.name, clip.number = name, number;
+		if not groups[name] then
+			groups[name] = {};
+			order[#order + 1] = name;
+		end
+		tinsert(groups[name], clip);
+	end
+	for _, name in ipairs(order) do
+		local group = groups[name];
+		if #group == 1 then
+			group[1].label = name;
+			group[1].number = 0;
+		else
+			local taken = {};
+			for _, clip in ipairs(group) do
+				if clip.number and not taken[clip.number] then
+					taken[clip.number] = true;
+				else
+					clip.number = nil;
+				end
+			end
+			local free = 1;
+			for _, clip in ipairs(group) do
+				if not clip.number then
+					while taken[free] do
+						free = free + 1;
+					end
+					clip.number = free;
+					taken[free] = true;
+				end
+				clip.label = name .. " " .. clip.number;
+			end
+		end
+	end
+	table.sort(clips, function(a, b)
+		if a.name ~= b.name then
+			return a.name < b.name;
+		end
+		return a.number < b.number;
+	end);
+	return clips;
 end
 
 local function BuildSounds(panel)
@@ -434,7 +495,7 @@ local function BuildSounds(panel)
 			button:SetEnabled(not on);
 			button:GetFontString():SetTextColor(1, on and 1 or GOLD[2], on and 1 or GOLD[3]);
 		end
-		clips = ns.Clips(kind);
+		clips = NameClips(ns.Clips(kind));
 		local on = 0;
 		for i, clip in ipairs(clips) do
 			local row = rows[i] or Row(i);
@@ -444,7 +505,7 @@ local function BuildSounds(panel)
 				on = on + 1;
 			end
 			row.check:SetChecked(not muted);
-			local label = ClipName(clip.path);
+			local label = clip.label;
 			if clip.set ~= "public" then
 				label = label .. " |cff808080(" .. clip.set .. ")|r";
 			end

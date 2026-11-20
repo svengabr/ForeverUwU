@@ -55,6 +55,18 @@ local PACKS = {
 };
 local DEFAULT_PACK = PACKS[1].id;
 
+-- Clips that ship switched off (players found them odd); they stay on the
+-- Sounds page to turn back on. Paths as in Sounds.lua; small uwus are cut from
+-- the crit clips, so both go.
+local function ClipPath(pool, name)
+	return "Interface\\AddOns\\ForeverUwU\\sounds\\%d\\" .. pool .. "\\" .. name .. ".ogg";
+end
+local DEFAULT_MUTED = {};
+for _, name in ipairs({ "uwu-2", "uwu-3" }) do
+	tinsert(DEFAULT_MUTED, ClipPath("crit", name));
+	tinsert(DEFAULT_MUTED, ClipPath("small", name));
+end
+
 local db;
 local lastCrit, lastSmall, lastHurt = 0, 0, 0;
 local sessionCrits = 0;
@@ -831,6 +843,15 @@ frame:SetScript("OnEvent", function(self, event, arg1, ...)
 			end
 			-- A table can't live in DEFAULTS: the copy would share it.
 			db.muted = db.muted or {};
+			-- Clips that ship switched off: muted once per clip, so a player
+			-- who turns one back on under /uwu sounds keeps it on.
+			db.mutedDefaults = db.mutedDefaults or {};
+			for _, path in ipairs(DEFAULT_MUTED) do
+				if not db.mutedDefaults[path] then
+					db.mutedDefaults[path] = true;
+					db.muted[path] = true;
+				end
+			end
 			db.critCounts = db.critCounts or {};
 			db.bestCrits = db.bestCrits or {};
 			-- Only the rendered levels exist as files.

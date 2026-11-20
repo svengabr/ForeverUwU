@@ -41,7 +41,8 @@ the player targets themselves the `target` copy of each hit is skipped (`TargetI
   and must not be compared.
 - **Options:** a window of its own in `Options.lua` (`ns.ToggleOptions`, `/uwu`), tabs **General** and
   **Sounds** (`/uwu sounds`: every clip of the chosen pack and pool with a checkbox to switch it off and a button
-  to hear it; `db.muted`, keyed by sound path, muted clips stay out of the shuffle bag). Esc > Options > AddOns >
+  to hear it; `db.muted`, keyed by sound path, muted clips stay out of the shuffle bag; `DEFAULT_MUTED` in `ForeverUwU.lua` ships clips switched off, applied once per
+  clip via `db.mutedDefaults` so a player can turn them back on). Esc > Options > AddOns >
   Forever UwU only holds a button that opens the window. SavedVariable `ForeverUwUDB`;
   `/uwu crit|small|hurt|milestone|death|spit` plays a test sound. `offInParty` / `offInRaid` (default off) silence crit and hurt sounds
   in a group (`IsInGroup` / `IsInRaid`); test sounds still play. The General tab shows a mascot (`textures/girl.tga`, 256×512, from
