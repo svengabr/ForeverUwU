@@ -1,7 +1,9 @@
 # Changelog
 
-## Unreleased
+## 1.8.0
 
+- Two uwu clips that sounded odd ("uwu 2" and "uwu 3") are now off by default. They are still there: tick them under `/uwu` > **Sounds** if you liked them.
+- The **Sounds** tab gives every clip its own name: clips that used to show the same name (eleven of them just "uwu") are now numbered ("uwu 1" … "uwu 13", "ara ara 1" …) and sorted by name, so you can find the one you want to switch off.
 - Hawk tuah: when you or a player near you uses `/spit`, a "hawk tuah" plays, panned to the side the spitter stands on (by their nameplate when friendly nameplates are on, else for group members by where they stand next to you; otherwise from the middle). Out in the world only: in dungeons, raids, boss fights and PvP matches the game hides other players' emotes from addons. Switch it off with **Hawk tuah on /spit** under `/uwu`, test with `/uwu spit`, `/uwu spit left` and `/uwu spit right`.
 - Fixed: with **Also on my crit heals** on, a crit heal on yourself could count two or three times in the crit counter, and while targeting yourself a mob's crit on you could count as yours.
 
