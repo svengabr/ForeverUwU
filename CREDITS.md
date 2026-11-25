@@ -25,7 +25,9 @@ the sad violin …), plus announcer calls from Unreal Tournament, Halo, Quake, D
 "Game over, man!" line from Aliens and the Plants vs. Zombies "no", also from myinstants.com. All rights stay with their owners, and the clips are removed on request.
 
 The "hawk tuah" played on `/spit` is cut from the Hailey Welch street interview meme as shared on myinstants.com,
-only the two words, nothing after them. All rights stay with their owners, and the clip is removed on request.
+only the two words, nothing after them. The crying on `/cry` ("Anime girl crying", "Momonga crying") and the
+"yatta!" on `/cheer` ("yatta! kanade", "Rushia - YATTA!") are from myinstants.com too, named as they are there; the other emote sounds reuse
+clips listed above. All rights stay with their owners, and the clips are removed on request.
 
 ## Font
 

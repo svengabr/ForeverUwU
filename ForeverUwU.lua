@@ -32,8 +32,8 @@ local DEFAULTS = {
 	-- Cheers at crit count milestones and a sound when the player dies.
 	milestones = true,
 	death = true,
-	-- Hawk tuah when someone nearby uses /spit.
-	spit = true,
+	-- Hawk tuah on /spit, rawr on /roar … when someone nearby uses an emote.
+	emotes = true,
 };
 
 -- PlaySoundFile has no volume argument, so tools/build_sounds.py renders every
@@ -334,17 +334,23 @@ local function Debug(...)
 	end
 end
 
--- Hawk tuah when someone uses /spit. The emote comes as CHAT_MSG_TEXT_EMOTE
--- with the text in the client's language and no emote token, so the verb is
--- matched. Custom emotes (/e spits) come as CHAT_MSG_EMOTE and don't count.
-local SPIT_WORDS = { "%f[%a]spit", "%f[%a]spuckt", "%f[%a]crach", "%f[%a]escup", "%f[%a]sput" };
-local SPIT_GAP = 1;
-local lastSpit = 0;
+-- A clip when someone uses an emote: hawk tuah on /spit, rawr on /roar …
+-- The emote comes as CHAT_MSG_TEXT_EMOTE with the finished text in the
+-- client's language and no emote token, so the text is matched against the
+-- game's own emote texts (Emotes.lua, from tools/build_emotes.py). Custom
+-- emotes (/e spits) come as CHAT_MSG_EMOTE and don't count.
+local EMOTE_GAP = 1;
+local lastEmote = 0;
 
--- Addons can't play a sound at a spot in the world, so the clip is rendered
+-- Addons can't play a sound at a spot in the world, so the clips are rendered
 -- in stereo at five spots from left to right (tools/build_sounds.py) and the
--- one on the spitter's side plays.
-local SPIT_PANS = { "l2", "l1", "c", "r1", "r2" };
+-- one on the side of the player who used the emote plays.
+local EMOTE_PANS = { "l2", "l1", "c", "r1", "r2" };
+
+local function EmotePatterns()
+	local all = ns.EMOTE_PATTERNS or {};
+	return all[GetLocale()] or all.enUS or {};
+end
 
 local function Usable(...)
 	if not issecretvalue then
@@ -358,8 +364,8 @@ local function Usable(...)
 	return true;
 end
 
--- The unit of the spitter, found by GUID or else by name.
-local function IsSpitter(unit, guid, name)
+-- Whether unit is the sender of the emote, found by GUID or else by name.
+local function IsSender(unit, guid, name)
 	if not UnitExists(unit) then
 		return false;
 	end
@@ -388,7 +394,7 @@ local function SideOnScreen(guid, name)
 	-- code keeps the unit on the plate (unitToken).
 	for _, plate in ipairs(C_NamePlate.GetNamePlates() or {}) do
 		local unit = plate.unitToken or plate.namePlateUnitToken;
-		if type(unit) == "string" and IsSpitter(unit, guid, name) then
+		if type(unit) == "string" and IsSender(unit, guid, name) then
 			local x = plate:GetCenter();
 			if not x or not Usable(x) then
 				return nil;
@@ -411,7 +417,7 @@ local function SideInGroup(guid, name)
 	end
 	for i = 1, count do
 		local unit = prefix .. i;
-		if IsSpitter(unit, guid, name) then
+		if IsSender(unit, guid, name) then
 			-- UnitPosition gives the north coordinate first, then the west one.
 			local north, west = UnitPosition(unit);
 			local myNorth, myWest = UnitPosition("player");
@@ -431,21 +437,22 @@ local function SideInGroup(guid, name)
 	end
 end
 
-local function SpitPan(side)
+local function EmotePan(side)
 	if not side then
 		return "c";
 	end
-	local spot = math.floor((side + 1) / 2 * #SPIT_PANS) + 1;
-	return SPIT_PANS[math.max(1, math.min(#SPIT_PANS, spot))];
+	local spot = math.floor((side + 1) / 2 * #EMOTE_PANS) + 1;
+	return EMOTE_PANS[math.max(1, math.min(#EMOTE_PANS, spot))];
 end
 
--- side: -1 far left .. 1 far right, nil for the middle.
-local function PlaySpit(side)
-	local list = ns.spitSounds;
+-- emote: a clip folder (spit, roar …); side: -1 far left .. 1 far right,
+-- nil for the middle.
+local function PlayEmote(emote, side)
+	local list = ns.emoteSounds and ns.emoteSounds[emote];
 	if not list or #list == 0 then
 		return false;
 	end
-	PlaySoundFile(list[math.random(#list)]:format(db.volume, SpitPan(side)), CHANNEL);
+	PlaySoundFile(list[math.random(#list)]:format(db.volume, EmotePan(side)), CHANNEL);
 	return true;
 end
 
@@ -456,31 +463,30 @@ local function OnTextEmote(text, name, guid)
 	local senderKnown = Usable(name, guid);
 	Debug("emote", Usable(text) and tostring(text) or "(secret text)",
 		senderKnown and tostring(name) or "(secret sender)");
-	if not db.spit or not Usable(text) or type(text) ~= "string" then
+	if not db.emotes or not Usable(text) or type(text) ~= "string" then
 		return;
 	end
 	if not senderKnown then
 		name, guid = nil, nil;
 	end
-	local lower = strlower(text);
-	local found = false;
-	for _, word in ipairs(SPIT_WORDS) do
-		if strfind(lower, word) then
-			found = true;
+	local emote;
+	for _, entry in ipairs(EmotePatterns()) do
+		if strfind(text, entry[1]) then
+			emote = entry[2];
 			break;
 		end
 	end
 	local now = GetTime();
-	if not found or now - lastSpit < SPIT_GAP then
+	if not emote or now - lastEmote < EMOTE_GAP then
 		return;
 	end
-	lastSpit = now;
+	lastEmote = now;
 	local side;
 	if name and guid ~= UnitGUID("player") and name ~= UnitName("player") then
 		side = SideOnScreen(guid, name) or SideInGroup(guid, name);
 	end
-	Debug("spit", name, side and ("%.2f"):format(side) or "middle");
-	PlaySpit(side);
+	Debug(emote, name, side and ("%.2f"):format(side) or "middle");
+	PlayEmote(emote, side);
 end
 
 -- UNIT_COMBAT has no source, so a crit counts as the player's own only when
@@ -727,7 +733,7 @@ ns.VOLUME_STEP = VOLUME_STEP;
 ns.HasSounds = HasSounds;
 ns.Play = Play;
 ns.PlayPath = PlayPath;
-ns.PlaySpit = PlaySpit;
+ns.PlayEmote = PlayEmote;
 
 function ns.UpdateEvents()
 	UpdateEvents(frame);
@@ -797,9 +803,10 @@ SlashCmdList.FOREVERUWU = function(msg)
 		OnDeath(true);
 	elseif msg == "milestone" then
 		PlayMilestone(1000);
-	elseif msg == "spit" or msg == "spit left" or msg == "spit right" then
-		-- /uwu spit left|right checks that the stereo spots work.
-		PlaySpit(msg == "spit left" and -1 or msg == "spit right" and 1 or nil);
+	elseif ns.emoteSounds and ns.emoteSounds[strmatch(msg, "^(%a+)")] then
+		-- /uwu spit|roar|… [left|right]; left / right check the stereo spots.
+		local emote, side = strmatch(msg, "^(%a+)%s*(%a*)$");
+		PlayEmote(emote or msg, side == "left" and -1 or side == "right" and 1 or nil);
 	elseif msg == "sounds" then
 		ns.ToggleOptions("sounds");
 	else
@@ -836,6 +843,13 @@ frame:SetScript("OnEvent", function(self, event, arg1, ...)
 			self:UnregisterEvent("ADDON_LOADED");
 			ForeverUwUDB = ForeverUwUDB or {};
 			db = ForeverUwUDB;
+			-- 1.8.0 had a switch for /spit only; it now covers every emote.
+			if db.spit ~= nil then
+				if db.emotes == nil then
+					db.emotes = db.spit;
+				end
+				db.spit = nil;
+			end
 			for key, value in pairs(DEFAULTS) do
 				if db[key] == nil then
 					db[key] = value;

@@ -22,6 +22,7 @@ read_globals = {
   "ButtonFrameTemplate_HidePortrait",
   "C_NamePlate",
   "C_Timer",
+  "GetLocale",
   "GetPlayerFacing",
   "UnitGUID",
   "UnitPosition",

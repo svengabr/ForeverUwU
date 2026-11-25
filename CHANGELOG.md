@@ -2,6 +2,8 @@
 
 ## 1.9.0
 
+- More emotes get a sound, like `/spit` already does: "rawr~" on `/roar`, giggles on `/laugh`, `/lol` and `/giggle`, "yatta!" on `/cheer` and `/congrats`, "ara ara~" on `/flirt`, "chu~" on `/kiss`, crying on `/cry` and "baka!" on `/no`, from the side the player stands on. The switch under `/uwu` is now called **Sounds on emotes**; test with `/uwu roar`, `/uwu roar left` and so on.
+- Emotes are now recognized by the game's own emote texts in every client language, not by a word in them.
 - The addon's creator has a "Forever UwU Creator" line in the tooltip.
 
 ## 1.8.0

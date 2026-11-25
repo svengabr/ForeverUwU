@@ -15,6 +15,7 @@
 
 Sounds.lua
 Captions.lua
+Emotes.lua
 #@do-not-package@
 SoundsLocal.lua
 #@end-do-not-package@

@@ -24,11 +24,11 @@ normalized, so no clip is much louder than the others, and cut to 2.5 s. PlaySou
 volume argument, so each clip is rendered once per volume level (LEVELS, in
 percent) and the addon's volume slider picks the level.
 
-The spit clips (hawk tuah when someone uses /spit) belong to no pack and are
+The emote clips (hawk tuah on /spit, rawr on /roar …) belong to no pack and are
 rendered in stereo, once per spot from far left to far right (PANS), so the
-addon can play them from the side the spitter stands on:
+addon can play them from the side of the player who used the emote:
 
-  raw/<set>/spit/*  ->  sounds/[local/]spit/<level>/<pan>/*.ogg
+  raw/<set>/emote/<emote>/*  ->  sounds/[local/]emote/<emote>/<level>/<pan>/*.ogg
 
 Usage:  python tools/build_sounds.py [public|local ...]   (default: both)
 Needs ffmpeg on PATH.
@@ -74,9 +74,9 @@ CAP = "atrim=0:2.5,afade=t=out:st=2.1:d=0.4"
 SMALL = "atrim=0:0.7,afade=t=out:st=0.5:d=0.2,volume=-12dB"
 # Keep in sync with VOLUME_LEVELS in ForeverUwU.lua.
 LEVELS = (20, 40, 60, 80, 100)
-# Spit clip spots, left to right: folder name -> pan (-1 far left, 1 far right).
+# Emote clip spots, left to right: folder name -> pan (-1 far left, 1 far right).
 # Not all the way out: a clip in one ear only sounds broken. Keep the names in
-# sync with SPIT_PANS in ForeverUwU.lua.
+# sync with EMOTE_PANS in ForeverUwU.lua.
 PANS = {"l2": -0.8, "l1": -0.4, "c": 0.0, "r1": 0.4, "r2": 0.8}
 
 
@@ -146,11 +146,11 @@ def pan(position):
     return f"pan=stereo|c0={math.cos(angle):.4f}*c0|c1={math.sin(angle):.4f}*c0"
 
 
-def build_spit(raw_dir, out_dir):
-    """Renders the spit clips per level and pan spot; returns their names."""
+def build_emote(raw_dir, out_dir):
+    """Renders one emote's clips per level and pan spot; returns their names."""
     work = out_dir / "_full"
     shutil.rmtree(out_dir, ignore_errors=True)
-    sources = sorted(p for p in (raw_dir / "spit").glob("*") if p.suffix.lower() in RAW_EXT)
+    sources = sorted(p for p in raw_dir.glob("*") if p.suffix.lower() in RAW_EXT)
     for src in sources:
         ffmpeg(src, work / (src.stem + ".ogg"), f"{trim(src)},{CAP},{NORMALIZE}")
     names = [src.stem + ".ogg" for src in sources]
@@ -198,15 +198,25 @@ def build(name):
         lines.append("};")
         print(f"{name}/{pack}: " + ", ".join(f"{len(names[p])} {p}" for p in POOLS) + f" x {len(LEVELS)} levels")
 
-    out_dir = set_out / "spit"
-    spit = build_spit(set_raw, out_dir)
-    if spit:
+    # Clips of an older layout (one spit folder) would linger in the addon.
+    shutil.rmtree(set_out / "spit", ignore_errors=True)
+    emote_out = set_out / "emote"
+    shutil.rmtree(emote_out, ignore_errors=True)
+    emotes = sorted(d for d in (set_raw / "emote").glob("*") if d.is_dir())
+    if emotes:
+        lines.append("ns.emoteSounds = ns.emoteSounds or {};")
+    for emote_dir in emotes:
+        out_dir = emote_out / emote_dir.name
+        clips = build_emote(emote_dir, out_dir)
+        if not clips:
+            continue
         # %d is the level, %s the pan spot.
         base = "\\\\".join(["Interface", "AddOns", "ForeverUwU", *out_dir.relative_to(ROOT).parts, "%d", "%s"])
-        lines.append("ns.spitSounds = ns.spitSounds or {};")
-        for clip in spit:
-            lines.append(f'ns.spitSounds[#ns.spitSounds + 1] = "{base}\\\\{clip}";')
-        print(f"{name}/spit: {len(spit)} clips x {len(PANS)} spots x {len(LEVELS)} levels")
+        lines.append(f"ns.emoteSounds.{emote_dir.name} = ns.emoteSounds.{emote_dir.name} or {{}};")
+        for clip in clips:
+            lines.append(f'table.insert(ns.emoteSounds.{emote_dir.name}, "{base}\\\\{clip}");')
+        print(f"{name}/emote/{emote_dir.name}: {len(clips)} clips x {len(PANS)} spots x {len(LEVELS)} levels")
+
     manifest.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
 

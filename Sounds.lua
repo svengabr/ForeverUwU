@@ -325,5 +325,32 @@ ns.soundLists[#ns.soundLists + 1] = {
 		"Interface\\AddOns\\ForeverUwU\\sounds\\mlg\\%d\\small\\yack-yack-yack.ogg",
 	},
 };
-ns.spitSounds = ns.spitSounds or {};
-ns.spitSounds[#ns.spitSounds + 1] = "Interface\\AddOns\\ForeverUwU\\sounds\\spit\\%d\\%s\\hawk-tuah.ogg";
+ns.emoteSounds = ns.emoteSounds or {};
+ns.emoteSounds.cheer = ns.emoteSounds.cheer or {};
+table.insert(ns.emoteSounds.cheer, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\cheer\\%d\\%s\\rushia-yatta.ogg");
+table.insert(ns.emoteSounds.cheer, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\cheer\\%d\\%s\\yatta-kanade.ogg");
+table.insert(ns.emoteSounds.cheer, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\cheer\\%d\\%s\\yui-yahooo.ogg");
+ns.emoteSounds.cry = ns.emoteSounds.cry or {};
+table.insert(ns.emoteSounds.cry, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\cry\\%d\\%s\\anime-girl-crying.ogg");
+table.insert(ns.emoteSounds.cry, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\cry\\%d\\%s\\momonga-crying.ogg");
+ns.emoteSounds.flirt = ns.emoteSounds.flirt or {};
+table.insert(ns.emoteSounds.flirt, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\flirt\\%d\\%s\\akeno-ara-ara.ogg");
+table.insert(ns.emoteSounds.flirt, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\flirt\\%d\\%s\\ara-ara-shinobu-4575.ogg");
+table.insert(ns.emoteSounds.flirt, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\flirt\\%d\\%s\\ara-ara.ogg");
+ns.emoteSounds.kiss = ns.emoteSounds.kiss or {};
+table.insert(ns.emoteSounds.kiss, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\kiss\\%d\\%s\\chu-kyaaa.ogg");
+table.insert(ns.emoteSounds.kiss, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\kiss\\%d\\%s\\hey-senpai.ogg");
+table.insert(ns.emoteSounds.kiss, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\kiss\\%d\\%s\\onii-chan.ogg");
+ns.emoteSounds.laugh = ns.emoteSounds.laugh or {};
+table.insert(ns.emoteSounds.laugh, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\laugh\\%d\\%s\\cute-laugh.ogg");
+table.insert(ns.emoteSounds.laugh, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\laugh\\%d\\%s\\giggle.ogg");
+table.insert(ns.emoteSounds.laugh, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\laugh\\%d\\%s\\hehe.ogg");
+ns.emoteSounds.no = ns.emoteSounds.no or {};
+table.insert(ns.emoteSounds.no, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\no\\%d\\%s\\anta-baka.ogg");
+table.insert(ns.emoteSounds.no, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\no\\%d\\%s\\baka-cirno-15655.ogg");
+ns.emoteSounds.roar = ns.emoteSounds.roar or {};
+table.insert(ns.emoteSounds.roar, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\roar\\%d\\%s\\anime-girl-rawr.ogg");
+table.insert(ns.emoteSounds.roar, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\roar\\%d\\%s\\cute-rawr.ogg");
+table.insert(ns.emoteSounds.roar, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\roar\\%d\\%s\\rawr-uwu.ogg");
+ns.emoteSounds.spit = ns.emoteSounds.spit or {};
+table.insert(ns.emoteSounds.spit, "Interface\\AddOns\\ForeverUwU\\sounds\\emote\\spit\\%d\\%s\\hawk-tuah.ogg");
