@@ -23,3 +23,4 @@ ForeverUwU.lua
 Counter.lua
 Preview.lua
 Options.lua
+CreatorTooltip.lua

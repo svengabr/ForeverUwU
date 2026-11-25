@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.0
+
+- The addon's creator has a "Forever UwU Creator" line in the tooltip.
+
 ## 1.8.0
 
 - Two uwu clips that sounded odd ("uwu 2" and "uwu 3") are now off by default. They are still there: tick them under `/uwu` > **Sounds** if you liked them.

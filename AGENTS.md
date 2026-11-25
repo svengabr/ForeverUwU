@@ -8,6 +8,7 @@ WoW addon that plays a random anime "uwu" when the player lands a critical hit (
 `critHeal`, default off), and an angry uwu /
 "ara ara" when the player takes a critical hit or a single hit of at least `hurtPercent` (default 25 %) of their
 maximum health. Everything lives in `ForeverUwU.lua`.
+`CreatorTooltip.lua` adds a line to the tooltips of the creator's characters, listed there by GUID.
 
 **No combat log:** on WoW: Forever, registering `COMBAT_LOG_EVENT_UNFILTERED` is a forbidden action for addons
 (`ADDON_ACTION_FORBIDDEN`). The addon uses `UNIT_COMBAT` for `player` and `target` instead (flags `CRITICAL` /
